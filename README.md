@@ -41,9 +41,9 @@ kill命令执行时会同时执行项目的stop方法回调。
     "price": 13.2,
     "volume": 100
   },
-  "SpreadAlgo": {
+  "MacdAlgo": {
     "enable": true,
-    "class":"com.tigerbrokers.quant.algorithm.algos.SpreadAlgo",
+    "class":"com.tigerbrokers.quant.algorithm.algos.MacdAlgo",
     "symbol": "SPY",
     "bars": 100
   }

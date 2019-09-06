@@ -35,7 +35,7 @@ import org.ta4j.core.trading.rules.CrossedUpIndicatorRule;
  * @author kevin
  * @date 2019/08/26
  */
-public class SpreadAlgo extends AlgoTemplate {
+public class MacdAlgo extends AlgoTemplate {
 
   private BarGenerator barGenerator;
   private BarGenerator xminBarGenerator;
@@ -46,14 +46,10 @@ public class SpreadAlgo extends AlgoTemplate {
   private static final List<String> symbols = new ArrayList<>();
 
   static {
-    //symbols.add("AAPL");
-    //symbols.add("SPY");
-    //symbols.add("AMD");
-    //symbols.add("00700");
     symbols.add("CN1909");
   }
 
-  public SpreadAlgo() {
+  public MacdAlgo() {
     init();
   }
 
@@ -67,7 +63,7 @@ public class SpreadAlgo extends AlgoTemplate {
     Integer barSize = (Integer) settings.get("bars");
 
     for (String symbol : symbols) {
-      TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("Spread").build();
+      TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("MacdSeries").build();
       series.setMaximumBarCount(400);
       symbolSeries.put(symbol, series);
       TradingRecord tradingRecord = new BaseTradingRecord();

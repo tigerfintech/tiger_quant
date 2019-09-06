@@ -1,0 +1,8 @@
+{
+  "log.enable": true,
+  "log.level": "info",
+  "log.console": false,
+  "log.file": true,
+  "log.path": "log/",
+  "storage.enable": true
+}

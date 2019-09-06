@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <groupId>com.tigerbrokers</groupId>
+  <artifactId>tiger-quant</artifactId>
+  <version>1.0.0</version>
+
+  <properties>
+    <io.github.tigerbrokers.openapi-java-sdk.version>1.0.8</io.github.tigerbrokers.openapi-java-sdk.version>
+    <junit.junit.version>4.12</junit.junit.version>
+    <org.slf4j.slf4j-api.version>1.7.28</org.slf4j.slf4j-api.version>
+    <org.ta4j.ta4j-core.version>0.12</org.ta4j.ta4j-core.version>
+    <mysql.mysql-connector-java.version>5.1.45</mysql.mysql-connector-java.version>
+    <org.mybatis.mybatis.version>3.4.6</org.mybatis.mybatis.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>io.github.tigerbrokers</groupId>
+      <artifactId>openapi-java-sdk</artifactId>
+      <version>${io.github.tigerbrokers.openapi-java-sdk.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-api</artifactId>
+      <version>${org.slf4j.slf4j-api.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.ta4j</groupId>
+      <artifactId>ta4j-core</artifactId>
+      <version>${org.ta4j.ta4j-core.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>${junit.junit.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>mysql</groupId>
+      <artifactId>mysql-connector-java</artifactId>
+      <version>${mysql.mysql-connector-java.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>org.mybatis</groupId>
+      <artifactId>mybatis</artifactId>
+      <version>${org.mybatis.mybatis.version}</version>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <source>1.8</source>
+          <target>1.8</target>
+        </configuration>
+      </plugin>
+    </plugins>
+  </build>
+
+</project>

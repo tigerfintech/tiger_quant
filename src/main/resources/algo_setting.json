@@ -1,0 +1,22 @@
+{
+  "BestLimitAlgo": {
+    "enable": false,
+    "class":"com.tigerbrokers.quant.algorithm.algos.BestLimitAlgo",
+    "direction": "BUY",
+    "volume": 100,
+    "symbol": "00700"
+  },
+  "DmaAlgo": {
+    "enable": false,
+    "class":"com.tigerbrokers.quant.algorithm.algos.DmaAlgo",
+    "direction": "BUY",
+    "price": 13.2,
+    "volume": 100
+  },
+  "SpreadAlgo": {
+    "enable": true,
+    "class":"com.tigerbrokers.quant.algorithm.algos.SpreadAlgo",
+    "symbol": "SPY",
+    "bars": 100
+  }
+}

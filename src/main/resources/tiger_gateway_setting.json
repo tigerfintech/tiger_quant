@@ -1,0 +1,10 @@
+{
+  "gateway": "TigerGateway",
+  "apiLogEnable": true,
+  "apiLogPath": "log/",
+  "serverUrl": "https://openapi.itiger.com/gateway",
+  "socketUrl": "wss://openapi.itiger.com:8887/stomp",
+  "tigerId": "",
+  "account": "",
+  "privateKey": ""
+}

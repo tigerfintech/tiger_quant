@@ -28,19 +28,19 @@ public interface TradeApi {
 
   Order getOrder(long id);
 
-  List<Order> getOpenOrders();
+  List<Order> getOpenOrders(SecType secType);
 
-  List<Order> getFilledOrders();
+  List<Order> getFilledOrders(SecType secType);
 
-  List<Order> getCancelledOrders();
+  List<Order> getCancelledOrders(SecType secType);
 
-  List<Order> getOrders();
+  List<Order> getOrders(SecType secType);
 
   List<String> getAccounts();
 
   Asset getAsset(SecType secType);
 
-  Map<String, Position> getPositions();
+  Map<String, Position> getPositions(SecType secType);
 
   List<Contract> getContracts(SecType secType);
 

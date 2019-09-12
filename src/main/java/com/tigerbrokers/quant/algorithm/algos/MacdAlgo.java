@@ -24,6 +24,7 @@ import org.ta4j.core.TimeSeries;
 import org.ta4j.core.TradingRecord;
 import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.MACDIndicator;
+import org.ta4j.core.indicators.RSIIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
 import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.trading.rules.CrossedDownIndicatorRule;
@@ -45,6 +46,9 @@ public class MacdAlgo extends AlgoTemplate {
 
   private static final List<String> symbols = new ArrayList<>();
 
+  private int buyLimit = 10;
+  private int sellLimit = 10;
+
   static {
     symbols.add("CN1909");
   }
@@ -63,7 +67,7 @@ public class MacdAlgo extends AlgoTemplate {
     Integer barSize = (Integer) settings.get("bars");
 
     for (String symbol : symbols) {
-      TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("MacdSeries").build();
+      TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("MacdAlgo").build();
       series.setMaximumBarCount(400);
       symbolSeries.put(symbol, series);
       TradingRecord tradingRecord = new BaseTradingRecord();
@@ -91,6 +95,8 @@ public class MacdAlgo extends AlgoTemplate {
   @Override
   public void onTick(Tick tick) {
     barGenerator.updateTick(tick);
+    symbolSeries.get(tick.getSymbol()).addPrice(tick.getLatestPrice());
+    makeTradingChoice(tick);
   }
 
   @Override
@@ -106,7 +112,6 @@ public class MacdAlgo extends AlgoTemplate {
   public void onBar(Bar bar) {
     log("{} onBar {}", getAlgoName(), bar);
     addToSerie(bar);
-    makeTradingChoice(bar);
     xminBarGenerator.updateBar(bar);
   }
 
@@ -122,32 +127,48 @@ public class MacdAlgo extends AlgoTemplate {
     }
   }
 
-  public void makeTradingChoice(Bar bar) {
-    TimeSeries series = symbolSeries.get(bar.getSymbol());
-    Strategy strategy = symbolStrategy.get(bar.getSymbol());
-    TradingRecord tradingRecord = symbolTradingRecord.get(bar.getSymbol());
+  public void makeTradingChoice(Tick tick) {
+    TimeSeries series = symbolSeries.get(tick.getSymbol());
+    Strategy strategy = symbolStrategy.get(tick.getSymbol());
+    TradingRecord tradingRecord = symbolTradingRecord.get(tick.getSymbol());
 
     int endIndex = series.getEndIndex();
     if (strategy.shouldEnter(endIndex, tradingRecord)) {
       log("Strategy {} entered", getAlgoName());
-      double price = bar.getLow();
+
+      Position position = getPosition("CN1909");
+      log("{} position {}", getAlgoName(), position);
+      if (position != null && position.getPosition() >= buyLimit) {
+        return;
+      }
+
+      double price = tick.getLatestPrice();
       int volume = 1;
-      String id = buy(bar.getSymbol(), bar.getLow(), volume, OrderType.LMT);
-      log("Entered {} on {} orderId:{},price:{},amount:{}", getAlgoName(), bar.getSymbol(), id, price, volume);
+      String id = buy(tick.getSymbol(), tick.getLow(), volume, OrderType.LMT);
+      log("Entered {} on {} orderId:{},price:{},amount:{}", getAlgoName(), tick.getSymbol(), id, price, volume);
     }
     if (strategy.shouldExit(endIndex, tradingRecord)) {
       log("Strategy {} exit", getAlgoName());
-      double price = bar.getHigh();
+
+      Position position = getPosition("CN1909");
+      log("{} position {}", getAlgoName(), position);
+      if (position != null && position.getPosition() < 0 && -position.getPosition() >= sellLimit) {
+        return;
+      }
+
+      double price = tick.getLatestPrice();
       int volume = 1;
-      String id = sell(bar.getSymbol(), price, volume, OrderType.LMT);
-      log("Exited {} on {} orderId:{},price:{},amount:{}", getAlgoName(), bar.getSymbol(), id, price, volume);
+      String id = sell(tick.getSymbol(), price, volume, OrderType.LMT);
+      log("Exited {} on {} orderId:{},price:{},amount:{}", getAlgoName(), tick.getSymbol(), id, price, volume);
     }
   }
 
   private Strategy newMacdStrategy(TimeSeries series) {
     ClosePriceIndicator closePrice = new ClosePriceIndicator(series);
-    MACDIndicator macd = new MACDIndicator(closePrice, 12, 26);
+    RSIIndicator rsi = new RSIIndicator(closePrice, 250);
+    MACDIndicator macd = new MACDIndicator(rsi, 12, 26);
     EMAIndicator emaMacd = new EMAIndicator(macd, 9);
+
     Rule entryRule = new CrossedUpIndicatorRule(macd, emaMacd);
     Rule exitRule = new CrossedDownIndicatorRule(macd, emaMacd);
     return new BaseStrategy(entryRule, exitRule);

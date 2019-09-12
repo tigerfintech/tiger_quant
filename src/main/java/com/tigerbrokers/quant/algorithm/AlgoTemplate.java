@@ -128,6 +128,10 @@ public abstract class AlgoTemplate {
     }
   }
 
+  public List<Order> getAllActiveOrders() {
+    return algoEngine.getAllActiveOrders();
+  }
+
   public Tick getTick(String symbol) {
     return algoEngine.getTick(symbol);
   }

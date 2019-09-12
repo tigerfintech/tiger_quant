@@ -233,7 +233,7 @@ public class AlgoEngine extends Engine {
     if (orderId == null) {
       throw new TigerQuantException("cancel order orderId is null");
     }
-    Order order = mainEngine.getOrder(orderId + "");
+    Order order = mainEngine.getOrder(orderId);
     if (order == null) {
       log("cancel order error，cannot find orderId：{}", orderId);
       return;
@@ -292,6 +292,10 @@ public class AlgoEngine extends Engine {
 
   public List<Position> getAllPositions() {
     return mainEngine.getAllPositions();
+  }
+
+  public List<Order> getAllActiveOrders() {
+    return mainEngine.getAllActiveOrders(null);
   }
 
   public void log(String format, Object... args) {

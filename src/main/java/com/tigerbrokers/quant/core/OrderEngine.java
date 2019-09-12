@@ -103,11 +103,11 @@ public class OrderEngine extends Engine {
     return ticks.get(symbol);
   }
 
-  public Order getOrder(String orderId) {
+  public Order getOrder(Long orderId) {
     return orders.get(orderId);
   }
 
-  public Trade getTrade(String orderId) {
+  public Trade getTrade(Long orderId) {
     return trades.get(orderId);
   }
 

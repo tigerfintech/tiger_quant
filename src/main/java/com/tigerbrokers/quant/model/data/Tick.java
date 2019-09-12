@@ -108,8 +108,7 @@ public class Tick {
     }
   }
 
-  public Tick jsonToTick(JSONObject jsonObject) {
-    Tick tick = new Tick();
+  public void jsonToTick(JSONObject jsonObject) {
     this.symbol = jsonObject.getString("symbol");
     this.identifier = jsonObject.getString("symbol");
     this.volume = jsonObject.getLongValue("volume");
@@ -157,7 +156,5 @@ public class Tick {
       this.timeSharing.timestamp = minuteTimeSharing.getLongValue("t");
       this.timeSharing.volume = minuteTimeSharing.getIntValue("v");
     }
-
-    return tick;
   }
 }

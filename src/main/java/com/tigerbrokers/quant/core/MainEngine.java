@@ -129,11 +129,11 @@ public class MainEngine {
     return getOrderEngine().getTick(symbol);
   }
 
-  public Order getOrder(String orderId) {
+  public Order getOrder(Long orderId) {
     return getOrderEngine().getOrder(orderId);
   }
 
-  public Trade getTrade(String orderId) {
+  public Trade getTrade(Long orderId) {
     return getOrderEngine().getTrade(orderId);
   }
 

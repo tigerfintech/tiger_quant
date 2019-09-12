@@ -99,12 +99,12 @@ public class TigerGateway extends Gateway {
 
   @Override
   public void connect() {
-    //queryContract(SecType.STK);
-    queryContract(SecType.FUT);
+    SecType secType = SecType.FUT;
+    queryContract(secType);
+    queryAsset(secType);
+    queryOrder(secType);
+    queryPosition(secType);
     queryAccount();
-    queryOrder();
-    queryPosition();
-    queryAsset(SecType.STK);
   }
 
   @Override
@@ -112,8 +112,8 @@ public class TigerGateway extends Gateway {
     socketClient.disconnect();
   }
 
-  private void queryOrder() {
-    List<Order> orders = tradeApi.getOrders();
+  private void queryOrder(SecType secType) {
+    List<Order> orders = tradeApi.getOrders(secType);
     if (orders == null) {
       return;
     }
@@ -126,8 +126,8 @@ public class TigerGateway extends Gateway {
     }
   }
 
-  private void queryPosition() {
-    this.positionDict = tradeApi.getPositions();
+  private void queryPosition(SecType secType) {
+    this.positionDict = tradeApi.getPositions(secType);
     for (Position position : positionDict.values()) {
       onPosition(position);
     }
@@ -161,7 +161,6 @@ public class TigerGateway extends Gateway {
 
   @Override
   public String sendOrder(OrderRequest request) {
-    //TODO FUT symbol='CN' ,need CN1909
     Contract contract = contractDict.get(request.getSymbol());
     if (request.getPrice() == null) {
       return tradeApi.placeMarketOrder(contract, request.getDirection(), request.getQuantity());

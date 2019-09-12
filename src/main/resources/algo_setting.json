@@ -13,10 +13,10 @@
     "price": 13.2,
     "volume": 100
   },
-  "SpreadAlgo": {
+  "MacdAlgo": {
     "enable": true,
-    "class":"com.tigerbrokers.quant.algorithm.algos.SpreadAlgo",
+    "class":"com.tigerbrokers.quant.algorithm.algos.MacdAlgo",
     "symbol": "SPY",
-    "bars": 100
+    "bars": 300
   }
 }

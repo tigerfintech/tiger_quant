@@ -197,29 +197,30 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
-  public List<Order> getOrders() {
-    return getOrderByServiceType(ApiServiceType.ORDERS);
+  public List<Order> getOrders(SecType secType) {
+    return getOrderByServiceType(ApiServiceType.ORDERS, secType);
   }
 
   @Override
-  public List<Order> getCancelledOrders() {
-    return getOrderByServiceType(ApiServiceType.INACTIVE_ORDERS);
+  public List<Order> getCancelledOrders(SecType secType) {
+    return getOrderByServiceType(ApiServiceType.INACTIVE_ORDERS, secType);
   }
 
   @Override
-  public List<Order> getOpenOrders() {
-    return getOrderByServiceType(ApiServiceType.ACTIVE_ORDERS);
+  public List<Order> getOpenOrders(SecType secType) {
+    return getOrderByServiceType(ApiServiceType.ACTIVE_ORDERS, secType);
   }
 
   @Override
-  public List<Order> getFilledOrders() {
-    return getOrderByServiceType(ApiServiceType.FILLED_ORDERS);
+  public List<Order> getFilledOrders(SecType secType) {
+    return getOrderByServiceType(ApiServiceType.FILLED_ORDERS, secType);
   }
 
-  private List<Order> getOrderByServiceType(String serviceType) {
+  private List<Order> getOrderByServiceType(String serviceType, SecType secType) {
     TigerHttpRequest request = new TigerHttpRequest(serviceType);
     String bizContent = AccountParamBuilder.instance()
         .account(account)
+        .secType(secType)
         .isBrief(false)
         .buildJson();
     request.setBizContent(bizContent);
@@ -242,9 +243,11 @@ public class TigerTradeApi implements TradeApi {
     if (items.isEmpty()) {
       return null;
     }
-    List<Order> orders = items.toJavaList(Order.class);
-    for (Order order : orders) {
-      order.setGatewayName(TigerGateway.GATEWAY_NAME);
+    List<Order> orders =new ArrayList<>();
+    for(int i=0;i<items.size();i++){
+      Order order = new Order();
+      order.jsonToOrder(items.getJSONObject(i));
+      orders.add(order);
     }
     return orders;
   }
@@ -315,13 +318,13 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
-  public Map<String, Position> getPositions() {
+  public Map<String, Position> getPositions(SecType secType) {
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.POSITIONS);
     String bizContent = AccountParamBuilder.instance()
         .account(account)
         .currency(Currency.USD)
         .market(Market.US)
-        .secType(SecType.STK)
+        .secType(secType)
         .buildJson();
 
     request.setBizContent(bizContent);

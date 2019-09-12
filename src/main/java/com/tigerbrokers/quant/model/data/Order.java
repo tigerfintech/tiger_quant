@@ -1,5 +1,7 @@
 package com.tigerbrokers.quant.model.data;
 
+import com.alibaba.fastjson.JSONObject;
+import com.tigerbrokers.quant.gateway.tiger.TigerGateway;
 import com.tigerbrokers.quant.model.request.ModifyRequest;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,15 +18,19 @@ public class Order {
 
   private long id;
   private String gatewayName;
+  private String name;
   private String account;
   private String symbol;
-  private String exchange;
+  private String identifier;
   private String direction;
   private String orderType;
   private double price;
   private int volume;
+  private double averageFilledPrice;
+  private int filledVolume;
   private String status;
-  private String time;
+  private String remark;
+  private long time;
 
   private static final Set<String> activeStatus = new HashSet<>();
 
@@ -43,5 +49,23 @@ public class Order {
 
   public boolean isActive() {
     return status != null && activeStatus.contains(status);
+  }
+
+  public void jsonToOrder(JSONObject jsonObject) {
+    this.gatewayName = TigerGateway.GATEWAY_NAME;
+    this.id = jsonObject.getLongValue("id");
+    this.identifier = jsonObject.getString("identifier");
+    this.name = jsonObject.getString("name");
+    this.account = jsonObject.getString("account");
+    this.symbol = jsonObject.getString("symbol");
+    this.direction = jsonObject.getString("action");
+    this.orderType = jsonObject.getString("orderType");
+    this.price = jsonObject.getDoubleValue("limitPrice");
+    this.volume = jsonObject.getIntValue("totalQuantity");
+    this.averageFilledPrice = jsonObject.getDoubleValue("avgFillPrice");
+    this.filledVolume = jsonObject.getIntValue("filledQuantity");
+    this.remark = jsonObject.getString("remark");
+    this.status = jsonObject.getString("status");
+    this.time = jsonObject.getLongValue("openTime");
   }
 }

@@ -13,7 +13,7 @@
     <junit.junit.version>4.12</junit.junit.version>
     <org.slf4j.slf4j-api.version>1.7.28</org.slf4j.slf4j-api.version>
     <org.ta4j.ta4j-core.version>0.12</org.ta4j.ta4j-core.version>
-    <mysql.mysql-connector-java.version>5.1.45</mysql.mysql-connector-java.version>
+    <mysql.mysql-connector-java.version>8.0.16</mysql.mysql-connector-java.version>
     <org.mybatis.mybatis.version>3.4.6</org.mybatis.mybatis.version>
   </properties>
 

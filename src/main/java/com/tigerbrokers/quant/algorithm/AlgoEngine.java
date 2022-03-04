@@ -40,12 +40,12 @@ public class AlgoEngine extends Engine {
 
   public static final String ENGINE_NAME = "AlgoEngine";
   private static final String ALGO_SETTING_FILE = "algo_setting.json";
+  private static final String DEFAULT_GATEWAY = TigerGateway.GATEWAY_NAME;
 
   private Map<String, Map<String, Object>> algoSettings;
   private Map<String, AlgoTemplate> algos = new HashMap<>();
   private Map<String, List<String>> symbolAlgoTemplateMap = new HashMap<>();
   private Map<String, String> orderIdAlgoTemplateMap = new HashMap<>();
-  private static final String DEFAULT_GATEWAY = TigerGateway.GATEWAY_NAME;
 
   public AlgoEngine(MainEngine mainEngine, EventEngine eventEngine) {
     this(ENGINE_NAME, mainEngine, eventEngine);
@@ -201,7 +201,7 @@ public class AlgoEngine extends Engine {
     Set<String> symbols = new HashSet<>();
     symbols.add(symbol);
     SubscribeRequest request = new SubscribeRequest(symbols);
-    mainEngine.cancelSubscribe(contract.getGatewayName(), request);
+    mainEngine.cancelSubscribe(DEFAULT_GATEWAY, request);
   }
 
   public String sendOrder(String algoTemplate, String symbol, Direction direction,
@@ -243,7 +243,7 @@ public class AlgoEngine extends Engine {
     OrderRequest request =
         new OrderRequest(symbol, contract.getExchange(), direction.name(), orderType.name(), volume, price);
 
-    String orderId = mainEngine.sendOrder(contract.getGatewayName(), request);
+    String orderId = mainEngine.sendOrder(DEFAULT_GATEWAY, request);
     orderIdAlgoTemplateMap.put(orderId, algoTemplate);
     return orderId;
   }

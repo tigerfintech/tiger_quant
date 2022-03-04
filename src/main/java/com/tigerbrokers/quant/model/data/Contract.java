@@ -1,6 +1,5 @@
 package com.tigerbrokers.quant.model.data;
 
-import com.tigerbrokers.quant.gateway.tiger.TigerGateway;
 import com.tigerbrokers.stock.openapi.client.https.domain.contract.item.ContractItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.future.item.FutureContractItem;
 import com.tigerbrokers.stock.openapi.client.struct.enums.SecType;
@@ -69,7 +68,6 @@ public class Contract {
     } else {
       contract.setMultiplier(multiplier.doubleValue());
     }
-    contract.setGatewayName(TigerGateway.GATEWAY_NAME);
     return contract;
   }
 
@@ -87,7 +85,6 @@ public class Contract {
     contract.setStrike(contractItem.getStrike());
     contract.setMultiplier(contractItem.getMultiplier());
     contract.setRight(contractItem.getRight());
-    contract.setGatewayName(TigerGateway.GATEWAY_NAME);
     return contract;
   }
 }

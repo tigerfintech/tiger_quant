@@ -60,7 +60,7 @@ public class MacdAlgo extends AlgoTemplate {
   private long lastSellOrderTime = 0;
 
   static {
-    symbols.add("CL2001");
+    symbols.add("TIGR");
   }
 
   public MacdAlgo() {

@@ -18,14 +18,17 @@ public class TigerQuantBootstrap {
   private static final Condition STOP = LOCK.newCondition();
 
   public static void main(String[] args) {
-    EventEngine eventEngine = new EventEngine();
-    MainEngine mainEngine = new MainEngine(eventEngine);
-    mainEngine.addGateway(new TigerGateway(eventEngine));
-    mainEngine.start();
-    addHook(mainEngine);
+    LOCK.lock();
     try {
-      LOCK.lock();
+      EventEngine eventEngine = new EventEngine();
+      MainEngine mainEngine = new MainEngine(eventEngine);
+      mainEngine.addGateway(new TigerGateway(eventEngine));
+      mainEngine.start();
+      addHook(mainEngine);
       STOP.await();
+    } catch (TigerQuantException e1){
+      e1.printStackTrace();
+      LOCK.unlock();
     } catch (InterruptedException e) {
       throw new RuntimeException(e.getMessage());
     } finally {
@@ -41,8 +44,8 @@ public class TigerQuantBootstrap {
         throw new RuntimeException("main stop exception ", e);
       }
 
+      LOCK.lock();
       try {
-        LOCK.lock();
         STOP.signal();
       } finally {
         LOCK.unlock();

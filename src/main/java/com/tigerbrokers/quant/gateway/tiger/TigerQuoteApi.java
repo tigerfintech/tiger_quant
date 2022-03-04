@@ -4,6 +4,7 @@ import com.tigerbrokers.quant.TigerQuantException;
 import com.tigerbrokers.quant.api.QuoteApi;
 import com.tigerbrokers.quant.model.data.Bar;
 import com.tigerbrokers.quant.model.enums.BarType;
+import com.tigerbrokers.stock.openapi.client.constant.ApiServiceType;
 import com.tigerbrokers.stock.openapi.client.https.client.TigerHttpClient;
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.CorporateDividendItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.CorporateSplitItem;
@@ -11,41 +12,27 @@ import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.Financi
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.FinancialReportItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.future.item.FutureKlineBatchItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.future.item.FutureKlineItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.KlineItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.KlinePoint;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.MarketItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.RealTimeQuoteItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.SymbolNameItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.TimelineItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.TradeTickItem;
+import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.*;
+import com.tigerbrokers.stock.openapi.client.https.request.TigerHttpRequest;
 import com.tigerbrokers.stock.openapi.client.https.request.financial.CorporateDividendRequest;
 import com.tigerbrokers.stock.openapi.client.https.request.financial.CorporateSplitRequest;
 import com.tigerbrokers.stock.openapi.client.https.request.financial.FinancialDailyRequest;
 import com.tigerbrokers.stock.openapi.client.https.request.financial.FinancialReportRequest;
 import com.tigerbrokers.stock.openapi.client.https.request.future.FutureKlineRequest;
-import com.tigerbrokers.stock.openapi.client.https.request.quote.QuoteKlineRequest;
-import com.tigerbrokers.stock.openapi.client.https.request.quote.QuoteMarketRequest;
-import com.tigerbrokers.stock.openapi.client.https.request.quote.QuoteRealTimeQuoteRequest;
-import com.tigerbrokers.stock.openapi.client.https.request.quote.QuoteSymbolNameRequest;
-import com.tigerbrokers.stock.openapi.client.https.request.quote.QuoteSymbolRequest;
-import com.tigerbrokers.stock.openapi.client.https.request.quote.QuoteTimelineRequest;
-import com.tigerbrokers.stock.openapi.client.https.request.quote.QuoteTradeTickRequest;
+import com.tigerbrokers.stock.openapi.client.https.request.quote.*;
+import com.tigerbrokers.stock.openapi.client.https.response.TigerHttpResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.financial.CorporateDividendResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.financial.CorporateSplitResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.financial.FinancialDailyResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.financial.FinancialReportResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.future.FutureKlineResponse;
-import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteKlineResponse;
-import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteMarketResponse;
-import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteRealTimeQuoteResponse;
-import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteSymbolNameResponse;
-import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteSymbolResponse;
-import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteTimelineResponse;
-import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteTradeTickResponse;
+import com.tigerbrokers.stock.openapi.client.https.response.quote.*;
 import com.tigerbrokers.stock.openapi.client.struct.enums.FinancialPeriodType;
 import com.tigerbrokers.stock.openapi.client.struct.enums.Market;
 import com.tigerbrokers.stock.openapi.client.struct.enums.RightOption;
 import com.tigerbrokers.stock.openapi.client.struct.enums.TimeLineType;
+import com.tigerbrokers.stock.openapi.client.util.builder.AccountParamBuilder;
+
 import java.sql.Date;
 import java.time.LocalDate;
 import java.time.ZoneId;
@@ -67,6 +54,19 @@ public class TigerQuoteApi implements QuoteApi {
 
   public TigerQuoteApi(TigerHttpClient client) {
     this.client = client;
+  }
+
+  @Override
+  public String grabQuotePermission() {
+    TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.GRAB_QUOTE_PERMISSION);
+    String bizContent = AccountParamBuilder.instance()
+            .buildJson();
+    request.setBizContent(bizContent);
+    TigerHttpResponse response = client.execute(request);
+    if (!response.isSuccess()) {
+      throw new RuntimeException("grab quote permission error:"+response.getMessage());
+    }
+    return response.getData();
   }
 
   @Override

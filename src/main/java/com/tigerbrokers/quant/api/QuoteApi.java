@@ -26,6 +26,8 @@ import java.util.Map;
  */
 public interface QuoteApi {
 
+  String grabQuotePermission();
+
   List<MarketItem> getMarketState(Market market);
 
   List<String> getSymbols(Market market);

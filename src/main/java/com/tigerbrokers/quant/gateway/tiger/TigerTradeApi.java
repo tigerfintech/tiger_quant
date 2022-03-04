@@ -20,18 +20,14 @@ import com.tigerbrokers.stock.openapi.client.https.request.future.FutureContract
 import com.tigerbrokers.stock.openapi.client.https.request.future.FutureExchangeRequest;
 import com.tigerbrokers.stock.openapi.client.https.request.quote.QuoteSymbolRequest;
 import com.tigerbrokers.stock.openapi.client.https.response.TigerHttpResponse;
-import com.tigerbrokers.stock.openapi.client.https.response.contract.ContractResponse;
+import com.tigerbrokers.stock.openapi.client.https.response.contract.ContractsResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.future.FutureBatchContractResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.future.FutureExchangeResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteSymbolResponse;
-import com.tigerbrokers.stock.openapi.client.struct.enums.ActionType;
-import com.tigerbrokers.stock.openapi.client.struct.enums.Currency;
-import com.tigerbrokers.stock.openapi.client.struct.enums.Market;
-import com.tigerbrokers.stock.openapi.client.struct.enums.OrderType;
-import com.tigerbrokers.stock.openapi.client.struct.enums.SecType;
-import com.tigerbrokers.stock.openapi.client.struct.enums.TimeInForce;
+import com.tigerbrokers.stock.openapi.client.struct.enums.*;
 import com.tigerbrokers.stock.openapi.client.util.builder.AccountParamBuilder;
 import com.tigerbrokers.stock.openapi.client.util.builder.TradeParamBuilder;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -368,17 +364,18 @@ public class TigerTradeApi implements TradeApi {
     if (secType == SecType.STK) {
       QuoteSymbolResponse symbolResponse = client.execute(QuoteSymbolRequest.newRequest(Market.US));
       if (!symbolResponse.isSuccess()) {
-        throw new TigerQuantException("get symbols is null");
+        throw new TigerQuantException("get symbols error:" + symbolResponse.getMessage());
       }
       List<String> symbols = symbolResponse.getSymbols();
       int end = symbols.size();
       int index = 0;
       while (index < end) {
         List<String> subList = symbols.subList(index, index + 50 > end ? end : index + 50);
-        ContractResponse response =
-            client.execute(ContractsRequest.newRequest(new ContractsModel(account, subList, secType.name())));
+        ContractsModel contractsModel = new ContractsModel(subList, secType.name());
+        contractsModel.setAccount(account);
+        ContractsResponse response = client.execute(ContractsRequest.newRequest(contractsModel));
         if (!response.isSuccess()) {
-          throw new TigerQuantException("get contracts error:" + response.getMessage());
+          throw new TigerQuantException("get contracts error:" + response.getMessage() + ",account:" + account);
         }
         List<ContractItem> items = response.getItems();
         if (items != null) {
@@ -421,8 +418,9 @@ public class TigerTradeApi implements TradeApi {
     if (secType == null) {
       throw new TigerQuantException("get contracts secType error");
     }
-    ContractResponse response =
-        client.execute(ContractsRequest.newRequest(new ContractsModel(account, symbols, secType.name())));
+    ContractsModel contractsModel = new ContractsModel(symbols, secType.name());
+    contractsModel.setAccount(account);
+    ContractsResponse response = client.execute(ContractsRequest.newRequest(contractsModel));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get contracts error:" + response.getMessage());
     }

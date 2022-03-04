@@ -18,6 +18,7 @@ import com.tigerbrokers.quant.model.request.ModifyRequest;
 import com.tigerbrokers.quant.model.request.OrderRequest;
 import com.tigerbrokers.quant.model.request.SubscribeRequest;
 import com.tigerbrokers.quant.util.QuantUtils;
+import com.tigerbrokers.stock.openapi.client.config.ClientConfig;
 import com.tigerbrokers.stock.openapi.client.https.client.TigerHttpClient;
 import com.tigerbrokers.stock.openapi.client.socket.ApiAuthentication;
 import com.tigerbrokers.stock.openapi.client.socket.WebSocketClient;
@@ -69,9 +70,9 @@ public class TigerGateway extends Gateway {
     serverClient = new TigerHttpClient(config.getServerUrl(), config.getTigerId(), config.getPrivateKey());
     try {
       subscribeApi = new TigerSubscribeApi(this);
-      socketClient =
-          new WebSocketClient(config.getSocketUrl(),
-              ApiAuthentication.build(config.getTigerId(), config.getPrivateKey()), subscribeApi);
+      socketClient = WebSocketClient.getInstance().url(config.getSocketUrl()).
+              authentication(ApiAuthentication.build(config.getTigerId(), config.getPrivateKey()))
+              .apiComposeCallback(subscribeApi);
     } catch (Exception e) {
       throw new TigerQuantException("build socket client exception:" + e.getMessage());
     }
@@ -82,14 +83,24 @@ public class TigerGateway extends Gateway {
 
   private void initConfig() {
     TigerConfig config = ConfigLoader.loadConfig(TIGER_CONFIG_FILE, TigerConfig.class);
+    ClientConfig clientConfig = new ClientConfig();
     if (config.getTigerId() == null) {
       throw new TigerQuantException("tigerId is null");
     }
     if (config.getAccount() == null) {
       throw new TigerQuantException("account is null");
     }
-    if (config.getServerUrl() == null) {
-      throw new TigerQuantException("serverUrl is null");
+    if (config.getServerUrl() == null ) {
+      if(clientConfig.serverUrl != null) {
+        config.setServerUrl(clientConfig.serverUrl);
+      } else {
+        throw new TigerQuantException("serverUrl is null");
+      }
+    }
+    if (config.getSocketUrl() == null) {
+      if (clientConfig.socketServerUrl != null) {
+        config.setSocketUrl(clientConfig.socketServerUrl);
+      }
     }
     if (config.getPrivateKey() == null) {
       throw new TigerQuantException("privateKey is null");
@@ -107,6 +118,8 @@ public class TigerGateway extends Gateway {
       queryPosition(secType);
       queryAccount();
     }
+    String grabQuoteResult = quoteApi.grabQuotePermission();
+    log("grabQuotePermission: {}", grabQuoteResult);
     if (!socketClient.isConnected()) {
       socketClient.connect();
     }

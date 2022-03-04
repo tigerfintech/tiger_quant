@@ -99,17 +99,33 @@ public class TigerGateway extends Gateway {
 
   @Override
   public void connect() {
-    SecType secType = SecType.FUT;
-    queryContract(secType);
-    queryAsset(secType);
-    queryOrder(secType);
-    queryPosition(secType);
-    queryAccount();
+    SecType[] secTypes = new SecType[] {SecType.STK, SecType.FUT};
+    for (SecType secType : secTypes) {
+      queryContract(secType);
+      queryAsset(secType);
+      queryOrder(secType);
+      queryPosition(secType);
+      queryAccount();
+    }
+    if (!socketClient.isConnected()) {
+      socketClient.connect();
+    }
   }
 
   @Override
   public void stop() {
+    cancelAllActiveOrders();
     socketClient.disconnect();
+  }
+
+  private void cancelAllActiveOrders() {
+    List<Order> activeOrders = tradeApi.getOpenOrders(SecType.FUT);
+    if (activeOrders != null) {
+      activeOrders.forEach(order -> {
+        log("cancel active order: {}", order);
+        tradeApi.cancelOrder(order.getId());
+      });
+    }
   }
 
   private void queryOrder(SecType secType) {
@@ -152,11 +168,15 @@ public class TigerGateway extends Gateway {
 
   @Override
   public void subscribe(SubscribeRequest request) {
-    socketClient.connect();
     socketClient.subscribe(Subject.OrderStatus);
     socketClient.subscribe(Subject.Asset);
     socketClient.subscribe(Subject.Position);
     socketClient.subscribeQuote(request.getSymbols());
+  }
+
+  @Override
+  public void cancelSubscribe(SubscribeRequest request) {
+    socketClient.cancelSubscribeQuote(request.getSymbols());
   }
 
   @Override

@@ -243,8 +243,8 @@ public class TigerTradeApi implements TradeApi {
     if (items.isEmpty()) {
       return null;
     }
-    List<Order> orders =new ArrayList<>();
-    for(int i=0;i<items.size();i++){
+    List<Order> orders = new ArrayList<>();
+    for (int i = 0; i < items.size(); i++) {
       Order order = new Order();
       order.jsonToOrder(items.getJSONObject(i));
       orders.add(order);
@@ -385,9 +385,20 @@ public class TigerTradeApi implements TradeApi {
           contracts.addAll(Contract.toContracts(items));
         }
         index += 50;
+        try {
+          Thread.sleep(20);
+        } catch (InterruptedException e) {
+          throw new TigerQuantException("sleep error");
+        }
       }
     } else {
       FutureExchangeResponse exchangeResponse = client.execute(FutureExchangeRequest.newRequest(secType.name()));
+      if (!exchangeResponse.isSuccess()) {
+        throw new TigerQuantException("get contracts error:" + exchangeResponse.getMessage());
+      }
+      if (exchangeResponse == null || exchangeResponse.getFutureExchangeItems() == null) {
+        throw new TigerQuantException("get contracts is null");
+      }
       for (FutureExchangeItem item : exchangeResponse.getFutureExchangeItems()) {
         FutureBatchContractResponse contractResponse =
             client.execute(FutureContractByExchCodeRequest.newRequest(item.getCode()));

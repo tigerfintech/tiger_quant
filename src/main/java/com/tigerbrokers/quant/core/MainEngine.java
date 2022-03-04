@@ -94,6 +94,14 @@ public class MainEngine {
     gateway.subscribe(request);
   }
 
+  public void cancelSubscribe(String gatewayName, SubscribeRequest request) {
+    Gateway gateway = getGateway(gatewayName);
+    if (gateway == null) {
+      throw new TigerQuantException("gateway " + gatewayName + " not found");
+    }
+    gateway.cancelSubscribe(request);
+  }
+
   public String sendOrder(String gatewayName, OrderRequest request) {
     Gateway gateway = getGateway(gatewayName);
     if (gateway == null) {

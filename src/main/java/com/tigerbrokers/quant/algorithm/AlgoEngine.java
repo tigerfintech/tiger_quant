@@ -185,6 +185,25 @@ public class AlgoEngine extends Engine {
     algoTemplates.add(templateName);
   }
 
+  public void cancelSubscribe(String templateName, String symbol) {
+    if (templateName == null) {
+      throw new TigerQuantException("cancel subscribe templateName is null");
+    }
+    if (symbol == null) {
+      throw new TigerQuantException("cancel subscribe symbol is null");
+    }
+
+    Contract contract = mainEngine.getContract(symbol);
+    if (contract == null) {
+      log("cancel subscribe error,cannot find contract symbol:{}", symbol);
+      return;
+    }
+    Set<String> symbols = new HashSet<>();
+    symbols.add(symbol);
+    SubscribeRequest request = new SubscribeRequest(symbols);
+    mainEngine.cancelSubscribe(contract.getGatewayName(), request);
+  }
+
   public String sendOrder(String algoTemplate, String symbol, Direction direction,
       double price, int volume, OrderType orderType) {
     Contract contract = mainEngine.getContract(symbol);

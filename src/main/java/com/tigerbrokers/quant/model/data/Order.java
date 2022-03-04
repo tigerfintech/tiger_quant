@@ -41,6 +41,18 @@ public class Order {
     activeStatus.add("PendingCancel");
   }
 
+  public Order() {
+  }
+
+  public Order(long id, String symbol, double price, int volume, String direction, String orderType) {
+    this.id = id;
+    this.symbol = symbol;
+    this.price = price;
+    this.volume = volume;
+    this.direction = direction;
+    this.orderType = orderType;
+  }
+
   public ModifyRequest createCancelRequest() {
     ModifyRequest request = new ModifyRequest();
     request.setOrderId(id);

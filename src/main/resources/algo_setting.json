@@ -16,7 +16,7 @@
   "MacdAlgo": {
     "enable": true,
     "class":"com.tigerbrokers.quant.algorithm.algos.MacdAlgo",
-    "symbol": "SPY",
+    "symbol": "CL2001",
     "bars": 300
   }
 }

@@ -106,6 +106,10 @@ public abstract class AlgoTemplate {
     algoEngine.subscribe(template, symbol);
   }
 
+  public void cancelSubscribe(String template, String symbol) {
+    algoEngine.cancelSubscribe(template, symbol);
+  }
+
   public String buy(String symbol, Double price, int volume, OrderType orderType) {
     log("buy {}|{}|{}", symbol, price, volume);
     return algoEngine.sendOrder(getAlgoName(), symbol, Direction.BUY, price, volume, orderType);

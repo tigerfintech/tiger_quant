@@ -15,8 +15,6 @@ import com.tigerbrokers.quant.model.enums.BarType;
 import com.tigerbrokers.quant.model.request.ModifyRequest;
 import com.tigerbrokers.quant.model.request.OrderRequest;
 import com.tigerbrokers.quant.model.request.SubscribeRequest;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.KlinePoint;
-import com.tigerbrokers.stock.openapi.client.struct.enums.KType;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
@@ -87,6 +85,8 @@ public abstract class Gateway {
   public abstract void connect();
 
   public abstract void subscribe(SubscribeRequest request);
+
+  public abstract void cancelSubscribe(SubscribeRequest request);
 
   public abstract String sendOrder(OrderRequest request);
 

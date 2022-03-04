@@ -17,8 +17,8 @@ import com.tigerbrokers.quant.model.enums.BarType;
 import com.tigerbrokers.quant.model.request.ModifyRequest;
 import com.tigerbrokers.quant.model.request.OrderRequest;
 import com.tigerbrokers.quant.model.request.SubscribeRequest;
+import com.tigerbrokers.quant.storage.dao.ContractDAO;
 import com.tigerbrokers.quant.util.QuantUtils;
-import com.tigerbrokers.stock.openapi.client.config.ClientConfig;
 import com.tigerbrokers.stock.openapi.client.https.client.TigerHttpClient;
 import com.tigerbrokers.stock.openapi.client.socket.ApiAuthentication;
 import com.tigerbrokers.stock.openapi.client.socket.WebSocketClient;
@@ -39,7 +39,6 @@ import java.util.Map;
  */
 public class TigerGateway extends Gateway {
 
-  private static final String TIGER_CONFIG_FILE = "tiger_gateway_setting.json";
   public static final String GATEWAY_NAME = "TigerGateway";
 
   private TigerHttpClient serverClient;
@@ -56,13 +55,15 @@ public class TigerGateway extends Gateway {
   private Map<String, Position> positionDict = new HashMap<>();
   private Map<String, Asset> assetDict = new HashMap<>();
 
+  private ContractDAO contractDAO = new ContractDAO();
+
   public TigerGateway(EventEngine eventEngine) {
     super(eventEngine, GATEWAY_NAME);
     init();
   }
 
   private void init() {
-    initConfig();
+    this.config = ConfigLoader.loadTigerConfig();
     if (this.config == null) {
       throw new TigerQuantException("config is null");
     }
@@ -71,8 +72,8 @@ public class TigerGateway extends Gateway {
     try {
       subscribeApi = new TigerSubscribeApi(this);
       socketClient = WebSocketClient.getInstance().url(config.getSocketUrl()).
-              authentication(ApiAuthentication.build(config.getTigerId(), config.getPrivateKey()))
-              .apiComposeCallback(subscribeApi);
+          authentication(ApiAuthentication.build(config.getTigerId(), config.getPrivateKey()))
+          .apiComposeCallback(subscribeApi);
     } catch (Exception e) {
       throw new TigerQuantException("build socket client exception:" + e.getMessage());
     }
@@ -81,38 +82,11 @@ public class TigerGateway extends Gateway {
     optionApi = new TigerOptionApi(serverClient);
   }
 
-  private void initConfig() {
-    TigerConfig config = ConfigLoader.loadConfig(TIGER_CONFIG_FILE, TigerConfig.class);
-    ClientConfig clientConfig = new ClientConfig();
-    if (config.getTigerId() == null) {
-      throw new TigerQuantException("tigerId is null");
-    }
-    if (config.getAccount() == null) {
-      throw new TigerQuantException("account is null");
-    }
-    if (config.getServerUrl() == null ) {
-      if(clientConfig.serverUrl != null) {
-        config.setServerUrl(clientConfig.serverUrl);
-      } else {
-        throw new TigerQuantException("serverUrl is null");
-      }
-    }
-    if (config.getSocketUrl() == null) {
-      if (clientConfig.socketServerUrl != null) {
-        config.setSocketUrl(clientConfig.socketServerUrl);
-      }
-    }
-    if (config.getPrivateKey() == null) {
-      throw new TigerQuantException("privateKey is null");
-    }
-    this.config = config;
-  }
-
   @Override
   public void connect() {
     SecType[] secTypes = new SecType[] {SecType.STK, SecType.FUT};
+    queryContract();
     for (SecType secType : secTypes) {
-      queryContract(secType);
       queryAsset(secType);
       queryOrder(secType);
       queryPosition(secType);
@@ -171,12 +145,14 @@ public class TigerGateway extends Gateway {
     onAsset(asset);
   }
 
-  private void queryContract(SecType secType) {
-    List<Contract> contracts = tradeApi.getContracts(secType);
+  private void queryContract() {
+    log("contract loading......");
+    List<Contract> contracts = contractDAO.queryContracts();
     for (Contract contract : contracts) {
       contractDict.put(contract.getIdentifier(), contract);
       onContract(contract);
     }
+    log("contract loaded......");
   }
 
   @Override

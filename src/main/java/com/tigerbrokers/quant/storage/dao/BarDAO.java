@@ -15,25 +15,39 @@ import org.apache.ibatis.session.SqlSession;
 public class BarDAO extends BaseDAO {
 
   public void saveBar(Bar bar) {
-    SqlSession sqlSession = openSession();
-    sqlSession.getMapper(BarMapper.class).saveBar(bar);
-    sqlSession.commit();
-    sqlSession.close();
+    SqlSession sqlSession = null;
+    try {
+      sqlSession = openSession();
+      sqlSession.getMapper(BarMapper.class).saveBar(bar);
+      sqlSession.commit();
+    } finally {
+      if (sqlSession != null) {
+        sqlSession.close();
+      }
+    }
   }
 
   public List<Bar> queryBar(String symbol, int limit) {
-    SqlSession sqlSession = openSession();
-    List<Bar> bars = sqlSession.getMapper(BarMapper.class).queryBars(symbol, limit);
-    sqlSession.commit();
-    sqlSession.close();
-    return bars;
+    SqlSession sqlSession = null;
+    try {
+      sqlSession = openSession();
+      List<Bar> bars = sqlSession.getMapper(BarMapper.class).queryBars(symbol, limit);
+      sqlSession.commit();
+      return bars;
+    } finally {
+      sqlSession.close();
+    }
   }
 
   public List<Bar> queryBar(String symbol, LocalDate beginDate, LocalDate endDate) {
-    SqlSession sqlSession = openSession();
-    List<Bar> bars = sqlSession.getMapper(BarMapper.class).queryBarsByDate(symbol, beginDate, endDate);
-    sqlSession.commit();
-    sqlSession.close();
-    return bars;
+    SqlSession sqlSession = null;
+    try {
+      sqlSession = openSession();
+      List<Bar> bars = sqlSession.getMapper(BarMapper.class).queryBarsByDate(symbol, beginDate, endDate);
+      sqlSession.commit();
+      return bars;
+    } finally {
+      sqlSession.close();
+    }
   }
 }

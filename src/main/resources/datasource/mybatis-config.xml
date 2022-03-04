@@ -22,5 +22,6 @@
 
   <mappers>
     <mapper class="com.tigerbrokers.quant.storage.mapper.BarMapper"/>
+    <mapper class="com.tigerbrokers.quant.storage.mapper.ContractMapper"/>
   </mappers>
 </configuration>

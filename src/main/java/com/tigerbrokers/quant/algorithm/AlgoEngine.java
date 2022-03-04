@@ -180,7 +180,7 @@ public class AlgoEngine extends Engine {
       Set<String> symbols = new HashSet<>();
       symbols.add(symbol);
       SubscribeRequest req = new SubscribeRequest(symbols);
-      mainEngine.subscribe(contract.getGatewayName(), req);
+      mainEngine.subscribe(DEFAULT_GATEWAY, req);
     }
     algoTemplates.add(templateName);
   }

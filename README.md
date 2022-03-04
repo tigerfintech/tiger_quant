@@ -1,5 +1,13 @@
 ## Tiger Quant
 
+### 启动前配置
+1. 本地安装mysql数据库，依据 resources/datasource/mysql_table_create.sql 中的sql来创建数据库和表
+2. 修改 resources/datasource/mybatis-config.xml 文件中的数据库连接信息，改为自己的数据库，用户名和密码
+![image](https://user-images.githubusercontent.com/3766355/156764862-d559d515-4119-4ec3-8abe-9548bb7930b8.png)
+3. 配置 Tiger OpenAPI 账号信息(参考下方配置说明)，然后执行 ContractLoader 下载合约数据
+以上步骤执行后，可以执行下面的启动命令来运行量化策略程序。
+
+
 ### 启动命令
 TigerQuantBootstrap 是项目的Main方法入口，负责项目的启动。
 

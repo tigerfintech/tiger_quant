@@ -27,6 +27,4 @@ target/
 logs/
 tiger-quant.iml
 
-.gitignore
-
 !/src/main/resources/tiger_gateway_setting.json

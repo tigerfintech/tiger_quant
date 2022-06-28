@@ -36,12 +36,7 @@ public class OrderEngine extends Engine {
 
   private EventHandler tickHandler = event -> {
     Tick tick = (Tick) event.getEventData();
-    Tick history = ticks.get(tick.getSymbol());
-    if (history != null) {
-      history.updateTick(tick);
-    } else {
-      ticks.put(tick.getSymbol(), tick);
-    }
+    ticks.put(tick.getSymbol(), tick);
   };
   private EventHandler orderHandler = event -> {
     Order order = (Order) event.getEventData();
@@ -60,21 +55,12 @@ public class OrderEngine extends Engine {
   };
   private EventHandler positionHandler = event -> {
     Position position = (Position) event.getEventData();
-    Position history = positions.get(position.getIdentifier());
-    if (history == null) {
-      positions.put(position.getIdentifier(), position);
-    } else {
-      history.updatePosition(position);
-    }
+    positions.put(position.getIdentifier(), position);
     positions.put(position.getSymbol(), position);
   };
   private EventHandler assetHandler = event -> {
     Asset asset = (Asset) event.getEventData();
-    if (this.asset == null) {
-      this.asset = asset;
-    } else {
-      this.asset.updateAsset(asset);
-    }
+    this.asset = asset;
   };
   private EventHandler contractHandler = event -> {
     Contract contract = (Contract) event.getEventData();

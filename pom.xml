@@ -16,7 +16,7 @@
     <mysql.mysql-connector-java.version>5.1.45</mysql.mysql-connector-java.version>
     <org.mybatis.mybatis.version>3.5.6</org.mybatis.mybatis.version>
     <org.projectlombok.lombok.version>1.18.4</org.projectlombok.lombok.version>
-    <fastjson.version>1.2.78</fastjson.version>
+    <fastjson.version>1.2.83</fastjson.version>
   </properties>
 
   <dependencies>

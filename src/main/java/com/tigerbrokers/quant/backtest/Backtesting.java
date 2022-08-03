@@ -1,6 +1,10 @@
 package com.tigerbrokers.quant.backtest;
 
+import com.tigerbrokers.quant.algorithm.AlgoEngine;
 import com.tigerbrokers.quant.algorithm.algos.BestLimitAlgo;
+import com.tigerbrokers.quant.core.MainEngine;
+import com.tigerbrokers.quant.event.EventEngine;
+import com.tigerbrokers.quant.gateway.tiger.TigerGateway;
 import com.tigerbrokers.quant.model.enums.BacktestingMode;
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -26,7 +30,14 @@ public class Backtesting {
     settings.put("volume", 10);
     settings.put("symbol", "AAPL");
     settings.put("mode", BacktestingMode.BAR);
-    backtestingEngine.addStrategy(new BestLimitAlgo(settings));
+    BestLimitAlgo bestLimitAlgo = new BestLimitAlgo(settings);
+    EventEngine eventEngine = new EventEngine();
+    MainEngine mainEngine = new MainEngine(eventEngine);
+    mainEngine.addGateway(new TigerGateway(eventEngine));
+    AlgoEngine algoEngine = new AlgoEngine(mainEngine, eventEngine);
+    bestLimitAlgo.setAlgoEngine(algoEngine);
+
+    backtestingEngine.addStrategy(bestLimitAlgo);
     backtestingEngine.loadData();
     backtestingEngine.runBacktesting();
     backtestingEngine.calculateResult();

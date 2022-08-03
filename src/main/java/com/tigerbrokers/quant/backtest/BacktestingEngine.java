@@ -13,6 +13,7 @@ import com.tigerbrokers.quant.model.enums.OrderStatus;
 import com.tigerbrokers.quant.storage.dao.BarDAO;
 import com.tigerbrokers.quant.storage.dao.BaseDAO;
 import com.tigerbrokers.quant.storage.dao.TickDAO;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -107,18 +108,21 @@ public class BacktestingEngine {
       throw new RuntimeException("the start date cannot be greater than the end date");
     }
     historyData.clear();
+    long durationDays = Math.max(Duration.between(start, end).toDays()/10, 1);
+    LocalDateTime deltaEnd = start.plusDays(durationDays);
 
     SqlSession sqlSession = baseDAO.openSession();
-    while (!start.isAfter(end)) {
+    while (start.isBefore(end)) {
       if (BacktestingMode.BAR == mode) {
-        List<Bar> bars = barDAO.queryBar(sqlSession, symbol, period, start, end);
+        List<Bar> bars = barDAO.queryBar(sqlSession, symbol, period, start, deltaEnd.isBefore(end) ? deltaEnd : end);
         historyData.addAll(bars);
       } else if (BacktestingMode.TICK == mode) {
         List<Tick> ticks = tickDAO.queryTicks(symbol, start, end);
         historyData.addAll(ticks);
       }
-      LocalDateTime plusStart = start.plusDays(30);
+      LocalDateTime plusStart = start.plusDays(durationDays);
       start = plusStart.isAfter(end) ? end : plusStart;
+      deltaEnd = start.plusDays(durationDays);
     }
     baseDAO.closeSession(sqlSession);
     System.out.println("finish to load history data, mode:" + mode + ", count:" + historyData.size());
@@ -135,7 +139,7 @@ public class BacktestingEngine {
     int batchSize = Math.max(totalSize / 10, 1);
 
     for (int i = 0; i < totalSize; i += batchSize) {
-      List<BaseData> batchData = historyData.subList(i, i + batchSize);
+      List<BaseData> batchData = historyData.subList(i, i + batchSize >= totalSize ? totalSize : i + batchSize);
       for (BaseData data : batchData) {
         try {
           if (BacktestingMode.BAR == mode) {
@@ -144,6 +148,7 @@ public class BacktestingEngine {
             newTick((Tick) data);
           }
         } catch (Exception e) {
+          e.printStackTrace();
           System.err.println("exception:" + e.getMessage());
         }
       }

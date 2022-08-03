@@ -13,42 +13,16 @@ import org.apache.ibatis.session.SqlSession;
  */
 public class ContractDAO extends BaseDAO {
 
-  public SqlSession getOpenSession() {
-    return super.openSession();
-  }
-
-  public void closeSession(SqlSession sqlSession) {
-    if (sqlSession != null) {
-      sqlSession.close();
-    }
-  }
-
   public void saveContract(SqlSession sqlSession, Contract contract) {
     sqlSession.getMapper(ContractMapper.class).saveContract(contract);
     sqlSession.commit();
   }
 
-  public List<Contract> queryContracts() {
-    SqlSession sqlSession = null;
-    try {
-      sqlSession = openSession();
-      List<Contract> contracts = sqlSession.getMapper(ContractMapper.class).queryContracts();
-      sqlSession.commit();
-      return contracts;
-    } finally {
-      sqlSession.close();
-    }
+  public List<Contract> queryContracts(SqlSession sqlSession) {
+    return sqlSession.getMapper(ContractMapper.class).queryContracts();
   }
 
-  public Contract queryContract(String identifier) {
-    SqlSession sqlSession = null;
-    try {
-      sqlSession = openSession();
-      Contract contract = sqlSession.getMapper(ContractMapper.class).queryContract(identifier);
-      sqlSession.commit();
-      return contract;
-    } finally {
-      sqlSession.close();
-    }
+  public Contract queryContract(SqlSession sqlSession, String identifier) {
+    return sqlSession.getMapper(ContractMapper.class).queryContract(identifier);
   }
 }

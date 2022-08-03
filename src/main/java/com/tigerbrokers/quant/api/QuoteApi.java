@@ -36,6 +36,9 @@ public interface QuoteApi {
 
   Map<String, List<Bar>> getBars(List<String> symbols, BarType barType, RightOption rightOption, int limit);
 
+  Map<String, List<Bar>> getBars(List<String> symbols, BarType barType, LocalDate start, LocalDate end,
+      RightOption rightOption);
+
   Map<String, List<Bar>> getFuturesBars(List<String> symbols, BarType barType, int limit);
 
   Map<String, List<RealTimeQuoteItem>> getRealTimeQuotes(List<String> symbols);

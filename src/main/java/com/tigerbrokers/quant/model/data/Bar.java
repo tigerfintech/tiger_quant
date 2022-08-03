@@ -3,6 +3,7 @@ package com.tigerbrokers.quant.model.data;
 import com.tigerbrokers.quant.model.enums.BarType;
 import com.tigerbrokers.stock.openapi.client.https.domain.future.item.FutureKlineItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.KlinePoint;
+import com.tigerbrokers.stock.openapi.client.util.SymbolUtil;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -20,9 +21,10 @@ import org.ta4j.core.num.PrecisionNum;
  * @date 2019/08/16
  */
 @Data
-public class Bar {
+public class Bar implements BaseData {
 
   private String symbol;
+  private String period;
   private Duration duration;
   private double open;
   private double close;
@@ -48,16 +50,25 @@ public class Bar {
     for (KlinePoint point : klinePoints) {
       Bar bar = new Bar();
       bar.setSymbol(symbol);
+      bar.setPeriod(barType.getValue());
       bar.setDuration(getDurationByKType(barType));
       bar.setOpen(point.getOpen());
       bar.setClose(point.getClose());
       bar.setHigh(point.getHigh());
       bar.setLow(point.getLow());
       bar.setVolume(point.getVolume());
-      bar.setTime(Instant.ofEpochMilli(point.getTime()).atZone(ZoneId.systemDefault()).toLocalDateTime());
+      bar.setTime(Instant.ofEpochMilli(point.getTime()).atZone(ZoneId.of(getZoneId(symbol))).toLocalDateTime());
       bars.add(bar);
     }
     return bars;
+  }
+
+  private static String getZoneId(String symbol) {
+    if(SymbolUtil.isUsStockSymbol(symbol)){
+      return  "America/New_York";
+    } else {
+      return  "Asia/Shanghai";
+    }
   }
 
   public static List<Bar> toFuturesBars(String symbol, BarType barType, List<FutureKlineItem> klineItems) {

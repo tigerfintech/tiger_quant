@@ -1,5 +1,6 @@
 package com.tigerbrokers.quant.model.data;
 
+import java.time.LocalDateTime;
 import lombok.Data;
 
 /**
@@ -12,6 +13,7 @@ import lombok.Data;
 @Data
 public class Trade {
 
+  private String id;
   private Long orderId;
   private String account;
   private String symbol;
@@ -21,5 +23,5 @@ public class Trade {
   private double price;
   private int volume;
   private String status;
-  private String time;
+  private LocalDateTime time;
 }

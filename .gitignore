@@ -28,4 +28,3 @@ logs/
 tiger-quant.iml
 
 tiger_gateway_setting.json
-!/src/main/resources/tiger_gateway_setting.json

@@ -67,7 +67,8 @@ public class MacdAlgo extends AlgoTemplate {
     init();
   }
 
-  private void init() {
+  @Override
+  public void init() {
     barGenerator = new BarGenerator(bar -> onBar(bar));
     xminBarGenerator = new BarGenerator(symbols, 5, bar -> on5minBar(bar));
   }
@@ -130,6 +131,7 @@ public class MacdAlgo extends AlgoTemplate {
     symbolSeries.get(trade.getSymbol()).addPrice(DoubleNum.valueOf(trade.getPrice()));
   }
 
+  @Override
   public void onBar(Bar bar) {
     log("{} onBar {}", getAlgoName(), bar);
     addToSerie(bar);

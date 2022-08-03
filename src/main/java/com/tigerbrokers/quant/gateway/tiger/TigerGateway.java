@@ -19,6 +19,7 @@ import com.tigerbrokers.quant.model.request.OrderRequest;
 import com.tigerbrokers.quant.model.request.SubscribeRequest;
 import com.tigerbrokers.quant.storage.dao.ContractDAO;
 import com.tigerbrokers.quant.util.QuantUtils;
+import com.tigerbrokers.stock.openapi.client.config.ClientConfig;
 import com.tigerbrokers.stock.openapi.client.https.client.TigerHttpClient;
 import com.tigerbrokers.stock.openapi.client.socket.ApiAuthentication;
 import com.tigerbrokers.stock.openapi.client.socket.WebSocketClient;
@@ -30,6 +31,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.ibatis.session.SqlSession;
 
 /**
  * Description:
@@ -68,7 +70,11 @@ public class TigerGateway extends Gateway {
       throw new TigerQuantException("config is null");
     }
     ApiLogger.setEnabled(config.isApiLogEnable(), config.getApiLogPath());
-    serverClient = new TigerHttpClient(config.getServerUrl(), config.getTigerId(), config.getPrivateKey());
+    ClientConfig clientConfig = ClientConfig.DEFAULT_CONFIG;
+    clientConfig.privateKey = config.getPrivateKey();
+    clientConfig.tigerId = config.getTigerId();
+    clientConfig.defaultAccount = config.getAccount();
+    serverClient =  TigerHttpClient.getInstance().clientConfig(clientConfig);
     try {
       subscribeApi = new TigerSubscribeApi(this);
       socketClient = WebSocketClient.getInstance().url(config.getSocketUrl()).
@@ -147,7 +153,9 @@ public class TigerGateway extends Gateway {
 
   private void queryContract() {
     log("contract loading......");
-    List<Contract> contracts = contractDAO.queryContracts();
+    SqlSession sqlSession = contractDAO.openSession();
+    List<Contract> contracts = contractDAO.queryContracts(sqlSession);
+    contractDAO.closeSession(sqlSession);
     for (Contract contract : contracts) {
       contractDict.put(contract.getIdentifier(), contract);
       onContract(contract);

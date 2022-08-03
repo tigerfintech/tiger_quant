@@ -39,6 +39,17 @@ public abstract class AlgoTemplate {
     setAlgoName(this.getClass().getSimpleName());
   }
 
+  public AlgoTemplate(Map<String, Object> settings) {
+    setAlgoName(this.getClass().getSimpleName());
+    this.settings = settings;
+  }
+
+  public void init() {
+  }
+
+  public void onBar(Bar bar) {
+  }
+
   public void updateTick(Tick tick) {
     if (active) {
       Tick history = ticks.get(tick.getSymbol());

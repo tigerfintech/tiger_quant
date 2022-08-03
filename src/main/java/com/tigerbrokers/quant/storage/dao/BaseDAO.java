@@ -43,4 +43,15 @@ public class BaseDAO {
   public SqlSession openSession() {
     return getSqlSessionFactory().openSession();
   }
+
+  public void closeSession(SqlSession sqlSession) {
+    if (sqlSession != null) {
+      try {
+        sqlSession.close();
+      } catch (Exception e) {
+        System.err.println("failed to close sqlSession:" + e.getMessage());
+        throw e;
+      }
+    }
+  }
 }

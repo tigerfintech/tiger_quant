@@ -13,7 +13,7 @@ import lombok.Data;
  * @date 2019/08/16
  */
 @Data
-public class Tick {
+public class Tick implements BaseData {
 
   private String identifier;
   private String symbol;

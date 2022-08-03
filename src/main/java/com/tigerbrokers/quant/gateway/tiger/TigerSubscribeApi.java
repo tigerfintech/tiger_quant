@@ -98,6 +98,11 @@ public class TigerSubscribeApi implements ApiComposeCallback {
     }
 
     @Override
+    public void tradeTickChange(JSONObject jsonObject) {
+
+    }
+
+    @Override
     public void optionChange(JSONObject jsonObject) {
         Tick tick = new Tick();
         tick.jsonToTick(jsonObject);

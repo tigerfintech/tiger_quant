@@ -34,7 +34,9 @@ import com.tigerbrokers.stock.openapi.client.struct.enums.TimeLineType;
 import com.tigerbrokers.stock.openapi.client.util.builder.AccountParamBuilder;
 
 import java.sql.Date;
+import java.sql.Timestamp;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 import java.util.Collections;
 import java.util.HashMap;
@@ -105,6 +107,35 @@ public class TigerQuoteApi implements QuoteApi {
     QuoteKlineResponse response =
         client.execute(
             QuoteKlineRequest.newRequest(symbols, barType.toKType()).withLimit(limit).withRight(rightOption));
+    if (!response.isSuccess()) {
+      throw new TigerQuantException("get bars error:" + response.getMessage());
+    }
+    Map<String, List<Bar>> result = new HashMap<>();
+    List<KlineItem> klineItems = response.getKlineItems();
+    if (klineItems != null) {
+      for (KlineItem item : klineItems) {
+        List<KlinePoint> klinePoints = item.getItems();
+        if (klinePoints == null || klinePoints.isEmpty()) {
+          continue;
+        }
+        result.put(item.getSymbol(), Bar.toBars(item.getSymbol(), barType, klinePoints));
+      }
+    }
+    return result;
+  }
+
+  @Override
+  public Map<String, List<Bar>> getBars(List<String> symbols, BarType barType, LocalDate start, LocalDate end,
+      RightOption rightOption) {
+    if (barType == null || !barType.isStockBarType()) {
+      throw new TigerQuantException("stock bar type [" + barType + "] not support");
+    }
+    long startTime = Timestamp.valueOf(start.atTime(LocalTime.MIDNIGHT)).getTime();
+    long endTime = Timestamp.valueOf(end.atTime(LocalTime.MIDNIGHT)).getTime();
+    System.out.println(startTime+","+endTime);
+    QuoteKlineResponse response =
+        client.execute(
+            QuoteKlineRequest.newRequest(symbols, barType.toKType(),startTime,endTime).withLimit(365).withRight(rightOption));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get bars error:" + response.getMessage());
     }

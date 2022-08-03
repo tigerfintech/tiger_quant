@@ -1,7 +1,7 @@
 package com.tigerbrokers.quant.storage.mapper;
 
 import com.tigerbrokers.quant.model.data.Bar;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -17,13 +17,17 @@ import org.apache.ibatis.annotations.Select;
 @Mapper
 public interface BarMapper {
 
-  @Insert("insert into bar(symbol,open,high,low,close,volume,duration,amount,create_time) value (#{symbol},#{open},#{high},#{low},#{close},#{volume},#{duration},#{amount},now())")
+  String ALL_COLUMN = "symbol,period,open,high,low,close,volume,duration,amount,time,create_time";
+
+  @Insert("insert into bar("+ALL_COLUMN+") value (#{symbol},#{period},#{open},#{high},#{low},#{close},#{volume},#{duration},#{amount},#{time},now())")
   void saveBar(Bar bar);
 
-  @Select("select symbol,open,high,low,close,volume,duration,amount from bar where symbol=#{symbol} limit #{limit}")
+  @Select("select " + ALL_COLUMN + " from bar where symbol=#{symbol} limit #{limit}")
   List<Bar> queryBars(@Param("symbol") String symbol, @Param("limit") int limit);
 
-  @Select("select symbol,open,high,low,close,volume,duration,amount from bar where symbol=#{symbol} and create_time>=#{beginDate} and create_time<=#{endDate}")
-  List<Bar> queryBarsByDate(@Param("symbol") String symbol, @Param("beginDate") LocalDate beginDate,
-      @Param("endDate") LocalDate endDate);
+  @Select("select "
+      + ALL_COLUMN
+      + " from bar where symbol=#{symbol} and period=#{period} and time>=#{beginDate} and time<=#{endDate}")
+  List<Bar> queryBarsByDate(@Param("symbol") String symbol,@Param("period") String period, @Param("beginDate") LocalDateTime beginDate,
+      @Param("endDate") LocalDateTime endDate);
 }

@@ -66,25 +66,25 @@ public class ConfigLoader {
 
   public static TigerConfig loadTigerConfig() {
     TigerConfig config = com.tigerbrokers.quant.config.ConfigLoader.loadConfig(TIGER_CONFIG_FILE, TigerConfig.class);
-    ClientConfig clientConfig = new ClientConfig();
+
     if (config.getTigerId() == null) {
       throw new TigerQuantException("tigerId is null");
     }
     if (config.getAccount() == null) {
       throw new TigerQuantException("account is null");
     }
-    if (config.getServerUrl() == null) {
-      if (clientConfig.serverUrl != null) {
-        config.setServerUrl(clientConfig.serverUrl);
-      } else {
-        throw new TigerQuantException("serverUrl is null");
-      }
-    }
-    if (config.getSocketUrl() == null) {
-      if (clientConfig.socketServerUrl != null) {
-        config.setSocketUrl(clientConfig.socketServerUrl);
-      }
-    }
+    //if (config.getServerUrl() == null) {
+    //  if (clientConfig.serverUrl != null) {
+    //    config.setServerUrl(clientConfig.serverUrl);
+    //  } else {
+    //    throw new TigerQuantException("serverUrl is null");
+    //  }
+    //}
+    //if (config.getSocketUrl() == null) {
+    //  if (clientConfig.socketServerUrl != null) {
+    //    config.setSocketUrl(clientConfig.socketServerUrl);
+    //  }
+    //}
     if (config.getPrivateKey() == null) {
       throw new TigerQuantException("privateKey is null");
     }

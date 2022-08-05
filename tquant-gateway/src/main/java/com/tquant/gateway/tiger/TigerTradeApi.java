@@ -43,11 +43,10 @@ import java.util.Map;
 public class TigerTradeApi implements TradeApi {
 
   private TigerHttpClient client;
-  private String account;
+  private String account = TigerConfigLoader.loadTigerConfig().getAccount();
 
-  public TigerTradeApi(TigerHttpClient client, String account) {
+  public TigerTradeApi(TigerHttpClient client) {
     this.client = client;
-    this.account = account;
   }
 
   @Override
@@ -67,7 +66,6 @@ public class TigerTradeApi implements TradeApi {
   @Override
   public String placeLimitOrder(Contract contract, String actionType, Double price, int quantity) {
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.PLACE_ORDER);
-
     String bizContent = TradeParamBuilder.instance()
         .account(account)
         .orderId(getOrderId())

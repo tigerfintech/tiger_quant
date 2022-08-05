@@ -1,5 +1,8 @@
 package com.tquant.loader;
 
+import com.tquant.gateway.api.QuoteApi;
+import com.tquant.gateway.tiger.TigerClient;
+import com.tquant.gateway.tiger.TigerQuoteApi;
 import com.tquant.loader.command.CliRunner;
 import com.tquant.loader.command.CommandExecuteTemplate;
 import com.tquant.core.model.data.Tick;
@@ -63,11 +66,11 @@ public class TickLoader implements CliRunner {
   }
 
   public void queryAndSaveTick(List<String> symbols, LocalDate startDate, LocalDate endDate) {
-    //QuoteApi quoteApi = new TigerQuoteApi(TigerClient.getInstance());
-    //Map<String, List<Tick>> tradeTicks = quoteApi.getTradeTicks(symbols);
-    //for (List<Tick> ticks : tradeTicks.values()) {
-    //  ticks.stream().forEach(tick -> tickDAO.saveTick(tick));
-    //}
+    QuoteApi quoteApi = new TigerQuoteApi(TigerClient.getInstance());
+    Map<String, List<Tick>> tradeTicks = quoteApi.getTradeTicks(symbols);
+    for (List<Tick> ticks : tradeTicks.values()) {
+      ticks.stream().forEach(tick -> tickDAO.saveTick(tick));
+    }
   }
 
   private static LocalDate parseLocalDate(String date) {

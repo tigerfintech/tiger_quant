@@ -4,6 +4,9 @@ package com.tquant.loader;
 import com.tquant.core.model.data.Bar;
 import com.tquant.core.model.enums.BarType;
 
+import com.tquant.gateway.api.QuoteApi;
+import com.tquant.gateway.tiger.TigerClient;
+import com.tquant.gateway.tiger.TigerQuoteApi;
 import com.tquant.loader.command.CliRunner;
 import com.tquant.loader.command.CommandExecuteTemplate;
 import com.tquant.storage.dao.BarDAO;
@@ -71,13 +74,13 @@ public class BarLoader implements CliRunner {
   }
 
   public void queryAndSaveBar(List<String> symbols, BarType barType, LocalDate startDate, LocalDate endDate) {
-    //QuoteApi quoteApi = new TigerQuoteApi(TigerClient.getInstance());
-    //Map<String, List<Bar>> symbolBars = quoteApi.getBars(symbols, barType, startDate, endDate, null);
-    //for (List<Bar> bars : symbolBars.values()) {
-    //  for (Bar bar : bars) {
-    //    barDAO.saveBar(bar);
-    //  }
-    //}
+    QuoteApi quoteApi = new TigerQuoteApi(TigerClient.getInstance());
+    Map<String, List<Bar>> symbolBars = quoteApi.getBars(symbols, barType, startDate, endDate, null);
+    for (List<Bar> bars : symbolBars.values()) {
+      for (Bar bar : bars) {
+        barDAO.saveBar(bar);
+      }
+    }
   }
 
   private static LocalDate parseLocalDate(String date) {

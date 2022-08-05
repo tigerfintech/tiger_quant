@@ -42,6 +42,8 @@ public class ConfigLoader {
     try (BufferedInputStream inputStream =
              new BufferedInputStream(
                  Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName))) {
+      int available = inputStream.available();
+      System.out.println(available);
       return JSON.parseObject(inputStream, Map.class);
     } catch (IOException e) {
       throw new TigerQuantException("parse config exception:" + e.getMessage());

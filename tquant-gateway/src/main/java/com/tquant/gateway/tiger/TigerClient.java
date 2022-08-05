@@ -1,9 +1,7 @@
-package com.tquant.bootstrap.util;
+package com.tquant.gateway.tiger;
 
 import com.tigerbrokers.stock.openapi.client.config.ClientConfig;
 import com.tigerbrokers.stock.openapi.client.https.client.TigerHttpClient;
-import com.tquant.gateway.tiger.TigerConfig;
-import com.tquant.gateway.tiger.TigerConfigLoader;
 
 /**
  * Description:

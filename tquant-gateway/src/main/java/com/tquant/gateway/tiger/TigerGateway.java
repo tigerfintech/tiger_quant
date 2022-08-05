@@ -77,7 +77,7 @@ public class TigerGateway extends Gateway {
     } catch (Exception e) {
       throw new TigerQuantException("build socket client exception:" + e.getMessage());
     }
-    tradeApi = new TigerTradeApi(serverClient, config.getAccount());
+    tradeApi = new TigerTradeApi(serverClient);
     quoteApi = new TigerQuoteApi(serverClient);
     optionApi = new TigerOptionApi(serverClient);
   }

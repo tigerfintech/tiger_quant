@@ -1,17 +1,17 @@
 package com.tquant.loader;
 
+import com.tquant.gateway.api.TradeApi;
+import com.tquant.gateway.tiger.TigerClient;
+import com.tquant.gateway.tiger.TigerTradeApi;
 import com.tquant.loader.command.CommandExecuteTemplate;
 import com.tquant.loader.command.CliRunner;
 import com.tquant.core.model.data.Contract;
 
-import com.tigerbrokers.stock.openapi.client.config.ClientConfig;
-import com.tigerbrokers.stock.openapi.client.https.client.TigerHttpClient;
 import com.tigerbrokers.stock.openapi.client.struct.enums.SecType;
 import com.tquant.storage.dao.ContractDAO;
 import java.util.List;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
-import org.apache.ibatis.session.SqlSession;
 
 /**
  * Description: update contract once per day
@@ -46,20 +46,10 @@ public class ContractLoader implements CliRunner {
   }
 
   private static void queryAndSaveContracts(SecType secType) {
-    //TigerConfig config = ConfigLoader.loadTigerConfig();
-    //ClientConfig clientConfig = ClientConfig.DEFAULT_CONFIG;
-    //clientConfig.tigerId = config.getTigerId();
-    //clientConfig.privateKey = config.getPrivateKey();
-    //clientConfig.defaultAccount = config.getAccount();
-    //TigerHttpClient serverClient =
-    //    TigerHttpClient.getInstance().clientConfig(clientConfig);
-    //TradeApi tradeApi = new TigerTradeApi(serverClient, config.getAccount());
-    //
-    //SqlSession sqlSession = contractDAO.openSession();
-    //List<Contract> contracts = tradeApi.getContracts(secType);
-    //for (Contract contract : contracts) {
-    //  contractDAO.saveContract(sqlSession, contract);
-    //}
-    //contractDAO.closeSession(sqlSession);
+    TradeApi tradeApi = new TigerTradeApi(TigerClient.getInstance());
+    List<Contract> contracts = tradeApi.getContracts(secType);
+    for (Contract contract : contracts) {
+      contractDAO.saveContract(contract);
+    }
   }
 }

@@ -9,7 +9,7 @@ package com.tigerbrokers.quant.command;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-public interface CliRunner {
+public interface CommandLineRunner {
   Options initOptions();
 
   boolean validateOptions(CommandLine var1);

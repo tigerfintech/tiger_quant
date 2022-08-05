@@ -14,19 +14,14 @@ import org.apache.commons.cli.ParseException;
  * @date 2022/08/03
  */
 
-public class CommandRunner {
-  public static final String PARAM_START = "s";
-  public static final String PARAM_END = "e";
-  public static final String PARAM_SYMBOL = "sy";
-  public static final String CLI_PARAM_F = "f";
-  public static final String CLI_PARAM_L = "l";
-  public static final String CLI_PARAM_H = "h";
+public class CommandExecuteTemplate {
+
   private static HelpFormatter formatter = new HelpFormatter();
 
-  public CommandRunner() {
+  public CommandExecuteTemplate() {
   }
 
-  public static void execute(String[] args, String cmdName, CliRunner runner) {
+  public static void execute(String[] args, String cmdName, CommandLineRunner runner) {
     CommandLineParser parser = new DefaultParser();
     Options options = runner.initOptions();
 

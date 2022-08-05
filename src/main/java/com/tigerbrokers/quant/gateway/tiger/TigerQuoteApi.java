@@ -3,6 +3,7 @@ package com.tigerbrokers.quant.gateway.tiger;
 import com.tigerbrokers.quant.TigerQuantException;
 import com.tigerbrokers.quant.api.QuoteApi;
 import com.tigerbrokers.quant.model.data.Bar;
+import com.tigerbrokers.quant.model.data.Tick;
 import com.tigerbrokers.quant.model.enums.BarType;
 import com.tigerbrokers.stock.openapi.client.constant.ApiServiceType;
 import com.tigerbrokers.stock.openapi.client.https.client.TigerHttpClient;
@@ -35,13 +36,17 @@ import com.tigerbrokers.stock.openapi.client.util.builder.AccountParamBuilder;
 
 import java.sql.Date;
 import java.sql.Timestamp;
+import java.time.Instant;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.ZoneId;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TimeZone;
 import java.util.stream.Collectors;
 
 /**
@@ -135,7 +140,7 @@ public class TigerQuoteApi implements QuoteApi {
     System.out.println(startTime+","+endTime);
     QuoteKlineResponse response =
         client.execute(
-            QuoteKlineRequest.newRequest(symbols, barType.toKType(),startTime,endTime).withLimit(365).withRight(rightOption));
+            QuoteKlineRequest.newRequest(symbols, barType.toKType(),startTime,endTime).withLimit(1000).withRight(rightOption));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get bars error:" + response.getMessage());
     }
@@ -189,13 +194,28 @@ public class TigerQuoteApi implements QuoteApi {
   }
 
   @Override
-  public Map<String, List<TradeTickItem>> getTradeTicks(List<String> symbols) {
+  public Map<String, List<Tick>> getTradeTicks(List<String> symbols) {
     QuoteTradeTickResponse response = client.execute(QuoteTradeTickRequest.newRequest(symbols));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get trade ticks error:" + response.getMessage());
     }
-
-    return response.getTradeTickItems().stream().collect(Collectors.groupingBy(TradeTickItem::getSymbol));
+    List<TradeTickItem> tradeTickItems = response.getTradeTickItems();
+    List<Tick> ticks = new ArrayList<>();
+    for (TradeTickItem tickItem : tradeTickItems) {
+      String symbol = tickItem.getSymbol();
+      for (TickPoint tickPoint : tickItem.getItems()) {
+        Tick tick = new Tick();
+        tick.setSymbol(symbol);
+        tick.setVolume(tickPoint.getVolume());
+        tick.setLatestTime(
+            LocalDateTime.ofInstant(Instant.ofEpochMilli(tickPoint.getTime()), TimeZone.getDefault().toZoneId()));
+        tick.setTime(tickPoint.getTime());
+        tick.setLatestPrice(tickPoint.getPrice());
+        tick.setType(tickPoint.getType());
+        ticks.add(tick);
+      }
+    }
+    return ticks.stream().collect(Collectors.groupingBy(Tick::getSymbol));
   }
 
   @Override

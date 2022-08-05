@@ -1,6 +1,7 @@
 package com.tigerbrokers.quant.api;
 
 import com.tigerbrokers.quant.model.data.Bar;
+import com.tigerbrokers.quant.model.data.Tick;
 import com.tigerbrokers.quant.model.enums.BarType;
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.CorporateDividendItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.CorporateSplitItem;
@@ -43,7 +44,7 @@ public interface QuoteApi {
 
   Map<String, List<RealTimeQuoteItem>> getRealTimeQuotes(List<String> symbols);
 
-  Map<String, List<TradeTickItem>> getTradeTicks(List<String> symbols);
+  Map<String, List<Tick>> getTradeTicks(List<String> symbols);
 
   Map<String, List<TimelineItem>> getTimeShareQuotes(List<String> symbols, Long beginTime);
 

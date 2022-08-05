@@ -10,9 +10,11 @@ import com.tigerbrokers.quant.model.data.Tick;
 import com.tigerbrokers.quant.model.data.Trade;
 import com.tigerbrokers.quant.model.enums.BarType;
 import com.tigerbrokers.quant.model.enums.OrderType;
+import com.tigerbrokers.quant.storage.dao.BarDAO;
 import com.tigerbrokers.quant.util.BarGenerator;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,7 +52,7 @@ public class MacdAlgo extends AlgoTemplate {
   private Map<String, List<Order>> symbolOpenOrders = new HashMap<>();
 
   private static final List<String> symbols = new ArrayList<>();
-
+  private static int barSize = 0;
   private static final int FILLED_ORDER_QUANTITY_THRESHOLD = 50;
   private static final double PRICE_TICK_THRESHOLD = 0.05;
   private static final long TIME_RANGE_THRESHOLD = 10000L;
@@ -59,23 +61,27 @@ public class MacdAlgo extends AlgoTemplate {
   private long lastOpenOrderTime = 0;
   private long lastSellOrderTime = 0;
 
-  static {
-    symbols.add("TIGR");
-  }
+  BarDAO barDAO = new BarDAO();
 
   public MacdAlgo() {
     init();
   }
 
+  public MacdAlgo(Map<String, Object> settings) {
+    super(settings);
+    init();
+  }
+
   @Override
   public void init() {
+    barSize = (Integer) settings.get("bars");
+    symbols.add((String) settings.get("symbol"));
     barGenerator = new BarGenerator(bar -> onBar(bar));
     xminBarGenerator = new BarGenerator(symbols, 5, bar -> on5minBar(bar));
   }
 
   @Override
   public void onStart() {
-    Integer barSize = (Integer) settings.get("bars");
 
     for (String symbol : symbols) {
       TimeSeries series = new BaseTimeSeries.SeriesBuilder().withName("MacdAlgo").build();
@@ -87,31 +93,26 @@ public class MacdAlgo extends AlgoTemplate {
       symbolStrategy.put(symbol, strategy);
     }
 
-    Map<String, List<Bar>> bars = getBars(symbols, BarType.min1, barSize);
+    List<Bar> bars =
+        barDAO.queryBar(symbols.get(0), BarType.min1.getValue(), LocalDateTime.of(2022, 8, 1, 0, 0),
+            LocalDateTime.of(2022, 8, 2, 0, 0));
     if (bars == null) {
       throw new TigerQuantException("get bars is null,symbols:" + symbols);
     }
-    for (String symbol : bars.keySet()) {
-      List<Bar> barList = bars.get(symbol);
-      for (Bar bar : barList) {
-        symbolSeries.get(symbol).addBar(bar.toBaseBar());
+    int i=0;
+    for (Bar bar : bars) {
+      symbolSeries.get(symbols.get(0)).addBar(bar.toBaseBar());
+      if (i++ == 100) {
+        break;
       }
     }
 
-    for (String symbol : symbols) {
-      subscribe(getAlgoName(), symbol);
-    }
-    Asset asset = getAsset();
-    log("initial asset:{}", asset);
-    List<Position> positions = getAllPositions();
-    log("initial positions:{}", positions);
   }
 
   @Override
   public void onTick(Tick tick) {
     barGenerator.updateTick(tick);
     symbolSeries.get(tick.getSymbol()).addPrice(tick.getLatestPrice());
-    makeTradingChoice(tick);
   }
 
   @Override
@@ -136,6 +137,7 @@ public class MacdAlgo extends AlgoTemplate {
     log("{} onBar {}", getAlgoName(), bar);
     addToSerie(bar);
     xminBarGenerator.updateBar(bar);
+    makeTradingChoice(bar.getSymbol(),bar.getClose());
   }
 
   public void on5minBar(Bar bar) {
@@ -150,61 +152,61 @@ public class MacdAlgo extends AlgoTemplate {
     }
   }
 
-  public void makeTradingChoice(Tick tick) {
-    TimeSeries series = symbolSeries.get(tick.getSymbol());
-    Strategy strategy = symbolStrategy.get(tick.getSymbol());
-    TradingRecord tradingRecord = symbolTradingRecord.get(tick.getSymbol());
+
+  public void makeTradingChoice(String symbol,double price) {
+    TimeSeries series = symbolSeries.get(symbol);
+    Strategy strategy = symbolStrategy.get(symbol);
+    TradingRecord tradingRecord = symbolTradingRecord.get(symbol);
 
     if (strategy.shouldEnter(series.getEndIndex(), tradingRecord)) {
-      buyStrategy(tick);
+      buyStrategy(symbol,price);
     } else if (strategy.shouldExit(series.getEndIndex(), tradingRecord)) {
-      sellStrategy(tick);
+      sellStrategy(symbol,price);
     }
   }
 
-  private void buyStrategy(Tick tick) {
-    if (tick.getLatestPrice() == lastTickPrice) {
+  private void buyStrategy(String symbol,double price) {
+    if (price == lastTickPrice) {
       return;
     }
-    lastTickPrice = tick.getLatestPrice();
+    lastTickPrice = price;
     log("Strategy {} entered, price {}", getAlgoName(), lastTickPrice);
 
-    if (meetNonOpeningConditions(tick)) {
+    if (meetNonOpeningConditions(symbol,price)) {
       return;
     }
 
-    Position position = getPosition(tick.getSymbol());
+    Position position = getPosition(symbol);
     log("{} position {}", getAlgoName(), position);
 
-    double price = tick.getLatestPrice();
+
     int volume = 5;
-    String id = buy(tick.getSymbol(), round(price - 0.01, 2), volume, OrderType.LMT);
+    String id = buy(symbol, round(price - 0.01, 2), volume, OrderType.LMT);
     lastOpenOrderTime = System.currentTimeMillis();
-    log("Entered {} on {} orderId:{},price:{},amount:{}", getAlgoName(), tick.getSymbol(), id, price, volume);
+    log("Entered {} on {} orderId:{},price:{},amount:{}", getAlgoName(), symbol, id, price, volume);
   }
 
-  private void sellStrategy(Tick tick) {
-    if (tick.getLatestPrice() == lastTickPrice) {
+  private void sellStrategy(String symbol,double price) {
+    if (price == lastTickPrice) {
       return;
     }
-    lastTickPrice = tick.getLatestPrice();
+    lastTickPrice = price;
     log("Strategy {} exited,price {}", getAlgoName(), lastTickPrice);
 
-    if (!shouldSold(tick)) {
+    if (!shouldSold(price)) {
       return;
     }
 
-    Position position = getPosition(tick.getSymbol());
+    Position position = getPosition(symbol);
     if (position == null || position.getPosition() < 0) {
       return;
     }
     log("{} position {}", getAlgoName(), position);
 
-    double price = tick.getLatestPrice();
-    String id = sell(tick.getSymbol(), round(price + 0.01, 2), position.getPosition(), OrderType.LMT);
+    String id = sell(symbol, round(price + 0.01, 2), position.getPosition(), OrderType.LMT);
     lastSellPrice = price;
     lastSellOrderTime = System.currentTimeMillis();
-    log("Exited {} on {} orderId:{},price:{},amount:{}", getAlgoName(), tick.getSymbol(), id, price,
+    log("Exited {} on {} orderId:{},price:{},amount:{}", getAlgoName(), symbol, id, price,
         position.getPosition());
   }
 
@@ -219,7 +221,7 @@ public class MacdAlgo extends AlgoTemplate {
     return new BaseStrategy(entryRule, exitRule);
   }
 
-  private boolean meetNonOpeningConditions(Tick tick) {
+  private boolean meetNonOpeningConditions(String symbol,double price) {
     double avgPrice = 0;
     double totalPrice = 0;
     int totalVolume = 0;
@@ -227,7 +229,7 @@ public class MacdAlgo extends AlgoTemplate {
       log("meet openTime threshold: {}", TIME_RANGE_THRESHOLD);
       return true;
     }
-    List<Order> orders = symbolFilledOrders.get(tick.getSymbol());
+    List<Order> orders = symbolFilledOrders.get(symbol);
     if (orders != null) {
       for (Order order : orders) {
         if ("BUY".equalsIgnoreCase(order.getDirection()) && order.getVolume() > 0) {
@@ -243,19 +245,19 @@ public class MacdAlgo extends AlgoTemplate {
     if (totalVolume != 0) {
       avgPrice = totalPrice / totalVolume;
     }
-    if (meetPriceThresholdCondition(tick.getLatestPrice(), avgPrice)) {
-      log("avgPrice meet threshold: {},latestPrice: {}", avgPrice, tick.getLatestPrice());
+    if (meetPriceThresholdCondition(price, avgPrice)) {
+      log("avgPrice meet threshold: {},latestPrice: {}", avgPrice, price);
       return true;
     }
 
     return false;
   }
 
-  private boolean shouldSold(Tick tick) {
+  private boolean shouldSold(double price) {
     if (System.currentTimeMillis() - lastSellOrderTime <= TIME_RANGE_THRESHOLD) {
       return false;
     }
-    if (Math.abs(tick.getLatestPrice() - lastSellPrice) >= PRICE_TICK_THRESHOLD) {
+    if (Math.abs(price - lastSellPrice) >= PRICE_TICK_THRESHOLD) {
       return true;
     }
     return false;

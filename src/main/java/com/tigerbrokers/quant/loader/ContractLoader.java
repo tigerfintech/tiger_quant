@@ -1,6 +1,8 @@
 package com.tigerbrokers.quant.loader;
 
 import com.tigerbrokers.quant.api.TradeApi;
+import com.tigerbrokers.quant.command.CommandExecuteTemplate;
+import com.tigerbrokers.quant.command.CommandLineRunner;
 import com.tigerbrokers.quant.config.ConfigLoader;
 import com.tigerbrokers.quant.config.TigerConfig;
 import com.tigerbrokers.quant.gateway.tiger.TigerTradeApi;
@@ -10,6 +12,8 @@ import com.tigerbrokers.stock.openapi.client.config.ClientConfig;
 import com.tigerbrokers.stock.openapi.client.https.client.TigerHttpClient;
 import com.tigerbrokers.stock.openapi.client.struct.enums.SecType;
 import java.util.List;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
 import org.apache.ibatis.session.SqlSession;
 
 /**
@@ -18,15 +22,33 @@ import org.apache.ibatis.session.SqlSession;
  * @author kevin
  * @date 2022/03/04
  */
-public class ContractLoader {
+public class ContractLoader implements CommandLineRunner {
+  private static final String SEC_TYPE = "t";
 
   private static ContractDAO contractDAO = new ContractDAO();
 
   public static void main(String[] args) {
-    queryAndSaveContracts();
+    CommandExecuteTemplate.execute(args, "-[t]", new ContractLoader());
   }
 
-  private static void queryAndSaveContracts() {
+  @Override
+  public Options initOptions() {
+    Options options = new Options();
+    options.addOption(SEC_TYPE, true, "交易品种，包括 SEC/FUT");
+    return options;
+  }
+
+  @Override
+  public boolean validateOptions(CommandLine cmdLine) {
+    return cmdLine.hasOption(SEC_TYPE);
+  }
+
+  @Override
+  public void start(CommandLine cmdLine) {
+    queryAndSaveContracts(SecType.valueOf(cmdLine.getOptionValue(SEC_TYPE)));
+  }
+
+  private static void queryAndSaveContracts(SecType secType) {
     TigerConfig config = ConfigLoader.loadTigerConfig();
     ClientConfig clientConfig = ClientConfig.DEFAULT_CONFIG;
     clientConfig.tigerId = config.getTigerId();
@@ -37,7 +59,7 @@ public class ContractLoader {
     TradeApi tradeApi = new TigerTradeApi(serverClient, config.getAccount());
 
     SqlSession sqlSession = contractDAO.openSession();
-    List<Contract> contracts = tradeApi.getContracts(SecType.STK);
+    List<Contract> contracts = tradeApi.getContracts(secType);
     for (Contract contract : contracts) {
       contractDAO.saveContract(sqlSession, contract);
     }

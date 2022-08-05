@@ -28,7 +28,6 @@ public class BestLimitAlgo extends AlgoTemplate {
   private double orderPrice;
   private int traded = 0;
   private String symbol;
-  private BacktestingMode mode;
   private BarGenerator barGenerator;
   private BarGenerator min2BarGenerator;
 
@@ -44,10 +43,6 @@ public class BestLimitAlgo extends AlgoTemplate {
     this.direction = (String) settings.get("direction");
     this.volume = (Integer) settings.get("volume");
     this.symbol = (String) settings.get("symbol");
-    Object mode = settings.get("mode");
-    if (mode != null) {
-      this.mode = (BacktestingMode) mode;
-    }
   }
 
   @Override
@@ -56,9 +51,7 @@ public class BestLimitAlgo extends AlgoTemplate {
     List<String> symbols = new ArrayList<>();
     symbols.add("AAPL");
     min2BarGenerator = new BarGenerator(symbols, 2, bar -> on2minBar(bar));
-    if (mode == null) {
-      subscribe(getAlgoName(), symbol);
-    }
+    subscribe(getAlgoName(), symbol);
   }
 
   @Override

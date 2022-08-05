@@ -7,11 +7,9 @@ import com.tigerbrokers.quant.model.data.Order;
 import com.tigerbrokers.quant.model.data.Tick;
 import com.tigerbrokers.quant.model.data.Trade;
 import com.tigerbrokers.quant.model.enums.BacktestingMode;
-import com.tigerbrokers.quant.model.enums.BarType;
 import com.tigerbrokers.quant.model.enums.Direction;
 import com.tigerbrokers.quant.model.enums.OrderStatus;
 import com.tigerbrokers.quant.storage.dao.BarDAO;
-import com.tigerbrokers.quant.storage.dao.BaseDAO;
 import com.tigerbrokers.quant.storage.dao.TickDAO;
 import java.time.Duration;
 import java.time.LocalDate;
@@ -21,7 +19,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.ibatis.session.SqlSession;
 
 /**
  * Description:
@@ -33,7 +30,7 @@ public class BacktestingEngine {
 
   private String symbol;
   private int interval;
-  private String period = BarType.day.getValue();
+  private String period;
   private LocalDateTime start;
   private LocalDateTime end;
   private double rate = 0;
@@ -51,7 +48,6 @@ public class BacktestingEngine {
 
   private static BarDAO barDAO = new BarDAO();
   private static TickDAO tickDAO = new TickDAO();
-  private static BaseDAO baseDAO = new BaseDAO();
 
   private Bar bar;
   private Tick tick;
@@ -111,10 +107,9 @@ public class BacktestingEngine {
     long durationDays = Math.max(Duration.between(start, end).toDays()/10, 1);
     LocalDateTime deltaEnd = start.plusDays(durationDays);
 
-    SqlSession sqlSession = baseDAO.openSession();
     while (start.isBefore(end)) {
       if (BacktestingMode.BAR == mode) {
-        List<Bar> bars = barDAO.queryBar(sqlSession, symbol, period, start, deltaEnd.isBefore(end) ? deltaEnd : end);
+        List<Bar> bars = barDAO.queryBar(symbol, period, start, deltaEnd.isBefore(end) ? deltaEnd : end);
         historyData.addAll(bars);
       } else if (BacktestingMode.TICK == mode) {
         List<Tick> ticks = tickDAO.queryTicks(symbol, start, end);
@@ -124,7 +119,6 @@ public class BacktestingEngine {
       start = plusStart.isAfter(end) ? end : plusStart;
       deltaEnd = start.plusDays(durationDays);
     }
-    baseDAO.closeSession(sqlSession);
     System.out.println("finish to load history data, mode:" + mode + ", count:" + historyData.size());
   }
 

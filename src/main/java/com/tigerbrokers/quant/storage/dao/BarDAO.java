@@ -15,16 +15,18 @@ import org.apache.ibatis.session.SqlSession;
  */
 public class BarDAO extends BaseDAO {
 
-  public void saveBar(SqlSession sqlSession, Bar bar) {
+  private static SqlSession sqlSession = new BaseDAO().openSession();
+
+  public void saveBar(Bar bar) {
     sqlSession.getMapper(BarMapper.class).saveBar(bar);
     sqlSession.commit();
   }
 
-  public List<Bar> queryBar(SqlSession sqlSession, String symbol, int limit) {
+  public List<Bar> queryBar(String symbol, int limit) {
     return sqlSession.getMapper(BarMapper.class).queryBars(symbol, limit);
   }
 
-  public List<Bar> queryBar(SqlSession sqlSession, String symbol, String period, LocalDateTime beginDate, LocalDateTime endDate) {
+  public List<Bar> queryBar(String symbol, String period, LocalDateTime beginDate, LocalDateTime endDate) {
     return sqlSession.getMapper(BarMapper.class).queryBarsByDate(symbol, period, beginDate, endDate);
   }
 }

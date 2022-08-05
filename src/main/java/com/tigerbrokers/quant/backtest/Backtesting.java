@@ -1,7 +1,8 @@
 package com.tigerbrokers.quant.backtest;
 
 import com.tigerbrokers.quant.algorithm.AlgoEngine;
-import com.tigerbrokers.quant.algorithm.algos.BestLimitAlgo;
+import com.tigerbrokers.quant.algorithm.AlgoTemplate;
+import com.tigerbrokers.quant.algorithm.algos.MacdAlgo;
 import com.tigerbrokers.quant.core.MainEngine;
 import com.tigerbrokers.quant.event.EventEngine;
 import com.tigerbrokers.quant.gateway.tiger.TigerGateway;
@@ -26,18 +27,18 @@ public class Backtesting {
         0.2, 300, 0.1, 1000000, end, BacktestingMode.BAR, 0, 0);
 
     Map<String, Object> settings = new HashMap<>();
-    settings.put("direction", "BUY");
-    settings.put("volume", 10);
     settings.put("symbol", "AAPL");
+    settings.put("bars", 10);
     settings.put("mode", BacktestingMode.BAR);
-    BestLimitAlgo bestLimitAlgo = new BestLimitAlgo(settings);
+
+    AlgoTemplate algoTemplate = new MacdAlgo(settings);
     EventEngine eventEngine = new EventEngine();
     MainEngine mainEngine = new MainEngine(eventEngine);
     mainEngine.addGateway(new TigerGateway(eventEngine));
     AlgoEngine algoEngine = new AlgoEngine(mainEngine, eventEngine);
-    bestLimitAlgo.setAlgoEngine(algoEngine);
+    algoTemplate.setAlgoEngine(algoEngine);
 
-    backtestingEngine.addStrategy(bestLimitAlgo);
+    backtestingEngine.addStrategy(algoTemplate);
     backtestingEngine.loadData();
     backtestingEngine.runBacktesting();
     backtestingEngine.calculateResult();

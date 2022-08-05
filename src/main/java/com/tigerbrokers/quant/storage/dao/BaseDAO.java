@@ -19,7 +19,6 @@ public class BaseDAO {
 
   private static SqlSessionFactory sqlSessionFactory;
   private static Boolean storageEnabled = (Boolean) ConfigLoader.GLOBAL_SETTINGS.get("storage.enable");
-
   static {
     if (storageEnabled != null && storageEnabled) {
       String resource = "datasource/mybatis-config.xml";

@@ -18,11 +18,13 @@ public class Tick implements BaseData {
   private String identifier;
   private String symbol;
   private String name;
+  private String type;
   private long volume;
   private double amount;
   private double latestPrice;
   private double latestVolume;
   private LocalDateTime latestTime;
+  private long time;
 
   private double open;
   private double high;
@@ -34,16 +36,6 @@ public class Tick implements BaseData {
   private int bidSize;
   private double askPrice;
   private int askSize;
-
-  private TimeSharingData timeSharing;
-
-  @Data class TimeSharingData {
-
-    private double price;
-    private double averagePrice;
-    private long timestamp;
-    private int volume;
-  }
 
   public void updateTick(Tick tick) {
     if (tick.getVolume() > 0) {
@@ -88,24 +80,6 @@ public class Tick implements BaseData {
     if (tick.getAmount() > 0) {
       this.amount = tick.getAmount();
     }
-    TimeSharingData timeSharing = tick.getTimeSharing();
-    if (timeSharing != null) {
-      if (this.timeSharing == null) {
-        this.timeSharing = timeSharing;
-      }
-      if (timeSharing.price > 0) {
-        this.timeSharing.price = timeSharing.price;
-      }
-      if (timeSharing.averagePrice > 0) {
-        this.timeSharing.averagePrice = timeSharing.averagePrice;
-      }
-      if (timeSharing.timestamp > 0) {
-        this.timeSharing.timestamp = timeSharing.timestamp;
-      }
-      if (timeSharing.volume > 0) {
-        this.timeSharing.volume = timeSharing.volume;
-      }
-    }
   }
 
   public void jsonToTick(JSONObject jsonObject) {
@@ -115,11 +89,14 @@ public class Tick implements BaseData {
     this.latestPrice = jsonObject.getDoubleValue("latestPrice");
     this.amount = jsonObject.getDoubleValue("amount");
     this.latestVolume = jsonObject.getIntValue("latestVolume");
-    if (jsonObject.getLongValue("timestamp") > 0) {
-      this.latestTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(jsonObject.getLongValue("timestamp")),
+    long timestamp = jsonObject.getLongValue("timestamp");
+    if ( timestamp > 0) {
+      this.latestTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(timestamp),
           TimeZone.getDefault().toZoneId());
+      this.time = timestamp;
     } else {
       this.latestTime = LocalDateTime.now();
+      this.time = System.currentTimeMillis();
     }
 
     this.open = jsonObject.getDoubleValue("open");
@@ -147,14 +124,6 @@ public class Tick implements BaseData {
       if (volume != null) {
         this.volume = volume;
       }
-    }
-    JSONObject minuteTimeSharing = jsonObject.getJSONObject("mi");
-    if (minuteTimeSharing != null) {
-      this.timeSharing = new TimeSharingData();
-      this.timeSharing.price = minuteTimeSharing.getDoubleValue("p");
-      this.timeSharing.averagePrice = minuteTimeSharing.getDoubleValue("a");
-      this.timeSharing.timestamp = minuteTimeSharing.getLongValue("t");
-      this.timeSharing.volume = minuteTimeSharing.getIntValue("v");
     }
   }
 }

@@ -7,6 +7,7 @@ import com.tigerbrokers.quant.model.data.Order;
 import com.tigerbrokers.quant.model.data.Position;
 import com.tigerbrokers.quant.model.data.Tick;
 import com.tigerbrokers.quant.model.data.Trade;
+import com.tigerbrokers.quant.model.enums.BacktestingMode;
 import com.tigerbrokers.quant.model.enums.BarType;
 import com.tigerbrokers.quant.model.enums.Direction;
 import com.tigerbrokers.quant.model.enums.OrderType;
@@ -30,6 +31,8 @@ public abstract class AlgoTemplate {
   protected AlgoEngine algoEngine;
   @Setter @Getter
   protected Map<String, Object> settings;
+  @Setter @Getter
+  protected BacktestingMode mode;
 
   private boolean active = false;
   private Map<Long, Order> activeOrders = new HashMap<>();
@@ -45,6 +48,10 @@ public abstract class AlgoTemplate {
   }
 
   public void init() {
+    Object mode = settings.get("mode");
+    if (mode != null) {
+      this.mode = (BacktestingMode) mode;
+    }
   }
 
   public void onBar(Bar bar) {
@@ -114,7 +121,9 @@ public abstract class AlgoTemplate {
   }
 
   public void subscribe(String template, String symbol) {
-    algoEngine.subscribe(template, symbol);
+    if (mode == null) {
+      algoEngine.subscribe(template, symbol);
+    }
   }
 
   public void cancelSubscribe(String template, String symbol) {

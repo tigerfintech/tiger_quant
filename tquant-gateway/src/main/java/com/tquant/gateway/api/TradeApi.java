@@ -4,7 +4,6 @@ import com.tquant.core.model.data.Asset;
 import com.tquant.core.model.data.Contract;
 import com.tquant.core.model.data.Order;
 import com.tquant.core.model.data.Position;
-import com.tigerbrokers.stock.openapi.client.struct.enums.SecType;
 import java.util.List;
 import java.util.Map;
 
@@ -28,21 +27,21 @@ public interface TradeApi {
 
   Order getOrder(long id);
 
-  List<Order> getOpenOrders(SecType secType);
+  List<Order> getOpenOrders(String secType);
 
-  List<Order> getFilledOrders(SecType secType);
+  List<Order> getFilledOrders(String secType);
 
-  List<Order> getCancelledOrders(SecType secType);
+  List<Order> getCancelledOrders(String secType);
 
-  List<Order> getOrders(SecType secType);
+  List<Order> getOrders(String secType);
 
   List<String> getAccounts();
 
-  Asset getAsset(SecType secType);
+  Asset getAsset(String secType);
 
-  Map<String, Position> getPositions(SecType secType);
+  Map<String, Position> getPositions(String secType);
 
-  List<Contract> getContracts(SecType secType);
+  List<Contract> getContracts(String secType);
 
-  List<Contract> getContracts(List<String> symbols, SecType secType);
+  List<Contract> getContracts(List<String> symbols, String secType);
 }

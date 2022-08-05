@@ -106,7 +106,7 @@ public class TigerGateway extends Gateway {
   }
 
   private void cancelAllActiveOrders() {
-    List<Order> activeOrders = tradeApi.getOpenOrders(SecType.FUT);
+    List<Order> activeOrders = tradeApi.getOpenOrders(SecType.FUT.name());
     if (activeOrders != null) {
       activeOrders.forEach(order -> {
         log("cancel active order: {}", order);
@@ -116,7 +116,7 @@ public class TigerGateway extends Gateway {
   }
 
   private void queryOrder(SecType secType) {
-    List<Order> orders = tradeApi.getOrders(secType);
+    List<Order> orders = tradeApi.getOrders(secType.name());
     if (orders == null) {
       return;
     }
@@ -130,7 +130,7 @@ public class TigerGateway extends Gateway {
   }
 
   private void queryPosition(SecType secType) {
-    this.positionDict = tradeApi.getPositions(secType);
+    this.positionDict = tradeApi.getPositions(secType.name());
     for (Position position : positionDict.values()) {
       onPosition(position);
     }
@@ -140,7 +140,7 @@ public class TigerGateway extends Gateway {
   }
 
   private void queryAsset(SecType secType) {
-    Asset asset = tradeApi.getAsset(secType);
+    Asset asset = tradeApi.getAsset(secType.name());
     this.assetDict.put(asset.getAccount(), asset);
     onAsset(asset);
   }

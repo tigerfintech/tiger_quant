@@ -30,8 +30,8 @@ public class Backtesting {
   private BacktestingEngine initEngine() {
     LocalDateTime start = LocalDateTime.of(2021, 1, 1, 0, 0, 0);
     LocalDateTime end = LocalDateTime.of(2021, 12, 31, 23, 59, 59);
-    return new BacktestingEngine("AAPL", 60, "day", start, 0.3 / 10000,
-        0.2, 300, 0.1, 1000000, end, BacktestingMode.BAR, 0, 0);
+    return new BacktestingEngine("AAPL", 60, "day", start, 3 / 10000,
+        0.2, 1, 0.1, 1000000, end, BacktestingMode.BAR, 0, 0);
   }
 
   private Map<String, Object> initSettings() {

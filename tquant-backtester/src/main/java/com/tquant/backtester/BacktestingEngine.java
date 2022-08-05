@@ -35,9 +35,13 @@ public class BacktestingEngine {
   private String period;
   private LocalDateTime start;
   private LocalDateTime end;
+  /** 佣金费率 **/
   private double rate = 0;
+  /** 每单预计的滑点损失 **/
   private double slippage = 0;
+  /** 每手股数 **/
   private int size = 1;
+  /** 价格最小变动 **/
   private double priceTick = 0;
   private int capital = 0;
   private BacktestingMode mode;

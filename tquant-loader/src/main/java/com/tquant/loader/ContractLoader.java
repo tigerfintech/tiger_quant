@@ -47,7 +47,7 @@ public class ContractLoader implements CliRunner {
 
   private static void queryAndSaveContracts(SecType secType) {
     TradeApi tradeApi = new TigerTradeApi(TigerClient.getInstance());
-    List<Contract> contracts = tradeApi.getContracts(secType);
+    List<Contract> contracts = tradeApi.getContracts(secType.name());
     for (Contract contract : contracts) {
       contractDAO.saveContract(contract);
     }

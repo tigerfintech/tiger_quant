@@ -30,6 +30,8 @@
     <fastjson.version>1.2.83</fastjson.version>
     <commons-cli.version>1.5.0</commons-cli.version>
     <logback.version>1.2.3</logback.version>
+    <tablesaw.version>0.43.1</tablesaw.version>
+    <guava.version>19.0</guava.version>
   </properties>
 
   <dependencyManagement>
@@ -48,6 +50,11 @@
         <groupId>org.ta4j</groupId>
         <artifactId>ta4j-core</artifactId>
         <version>${org.ta4j.ta4j-core.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.tictactec</groupId>
+        <artifactId>ta-lib</artifactId>
+        <version>0.4.0</version>
       </dependency>
       <dependency>
         <groupId>junit</groupId>
@@ -89,7 +96,22 @@
       <artifactId>logback-core</artifactId>
       <version>${logback.version}</version>
     </dependency>
-    </dependencies>
+    <dependency>
+      <groupId>tech.tablesaw</groupId>
+      <artifactId>tablesaw-core</artifactId>
+      <version>${tablesaw.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>tech.tablesaw</groupId>
+      <artifactId>tablesaw-jsplot</artifactId>
+      <version>${tablesaw.version}</version>
+    </dependency>
+    <dependency>
+      <groupId>com.google.guava</groupId>
+      <artifactId>guava</artifactId>
+      <version>${guava.version}</version>
+    </dependency>
+  </dependencies>
   </dependencyManagement>
 
   <build>

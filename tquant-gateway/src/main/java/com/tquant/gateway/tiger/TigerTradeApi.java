@@ -3,6 +3,12 @@ package com.tquant.gateway.tiger;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.tigerbrokers.stock.openapi.client.struct.enums.ActionType;
+import com.tigerbrokers.stock.openapi.client.struct.enums.Currency;
+import com.tigerbrokers.stock.openapi.client.struct.enums.Market;
+import com.tigerbrokers.stock.openapi.client.struct.enums.OrderType;
+import com.tigerbrokers.stock.openapi.client.struct.enums.SecType;
+import com.tigerbrokers.stock.openapi.client.struct.enums.TimeInForce;
 import com.tquant.core.TigerQuantException;
 import com.tquant.gateway.api.TradeApi;
 import com.tquant.core.model.data.Asset;
@@ -24,7 +30,6 @@ import com.tigerbrokers.stock.openapi.client.https.response.contract.ContractsRe
 import com.tigerbrokers.stock.openapi.client.https.response.future.FutureBatchContractResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.future.FutureExchangeResponse;
 import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteSymbolResponse;
-import com.tigerbrokers.stock.openapi.client.struct.enums.*;
 import com.tigerbrokers.stock.openapi.client.util.builder.AccountParamBuilder;
 import com.tigerbrokers.stock.openapi.client.util.builder.TradeParamBuilder;
 
@@ -192,30 +197,30 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
-  public List<Order> getOrders(SecType secType) {
+  public List<Order> getOrders(String secType) {
     return getOrderByServiceType(ApiServiceType.ORDERS, secType);
   }
 
   @Override
-  public List<Order> getCancelledOrders(SecType secType) {
+  public List<Order> getCancelledOrders(String secType) {
     return getOrderByServiceType(ApiServiceType.INACTIVE_ORDERS, secType);
   }
 
   @Override
-  public List<Order> getOpenOrders(SecType secType) {
+  public List<Order> getOpenOrders(String secType) {
     return getOrderByServiceType(ApiServiceType.ACTIVE_ORDERS, secType);
   }
 
   @Override
-  public List<Order> getFilledOrders(SecType secType) {
+  public List<Order> getFilledOrders(String secType) {
     return getOrderByServiceType(ApiServiceType.FILLED_ORDERS, secType);
   }
 
-  private List<Order> getOrderByServiceType(String serviceType, SecType secType) {
+  private List<Order> getOrderByServiceType(String serviceType, String secType) {
     TigerHttpRequest request = new TigerHttpRequest(serviceType);
     String bizContent = AccountParamBuilder.instance()
         .account(account)
-        .secType(secType)
+        .secType(SecType.valueOf(secType))
         .isBrief(false)
         .buildJson();
     request.setBizContent(bizContent);
@@ -267,7 +272,8 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
-  public Asset getAsset(SecType secType) {
+  public Asset getAsset(String secTypeStr) {
+    SecType secType = SecType.valueOf(secTypeStr);
     if (secType == null || (secType != SecType.FUT && secType != SecType.STK)) {
       throw new TigerQuantException("get asset secType is null");
     }
@@ -313,13 +319,13 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
-  public Map<String, Position> getPositions(SecType secType) {
+  public Map<String, Position> getPositions(String secType) {
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.POSITIONS);
     String bizContent = AccountParamBuilder.instance()
         .account(account)
         .currency(Currency.USD)
         .market(Market.US)
-        .secType(secType)
+        .secType(SecType.valueOf(secType))
         .buildJson();
 
     request.setBizContent(bizContent);
@@ -351,7 +357,8 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
-  public List<Contract> getContracts(SecType secType) {
+  public List<Contract> getContracts(String secTypeStr) {
+    SecType secType = SecType.valueOf(secTypeStr);
     if (secType == null) {
       throw new TigerQuantException("getContracts secType is null");
     }
@@ -410,14 +417,14 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
-  public List<Contract> getContracts(List<String> symbols, SecType secType) {
+  public List<Contract> getContracts(List<String> symbols, String secType) {
     if (symbols == null || symbols.size() > 50) {
       throw new TigerQuantException("get contracts symbol error");
     }
     if (secType == null) {
       throw new TigerQuantException("get contracts secType error");
     }
-    ContractsModel contractsModel = new ContractsModel(symbols, secType.name());
+    ContractsModel contractsModel = new ContractsModel(symbols, secType);
     contractsModel.setAccount(account);
     ContractsResponse response = client.execute(ContractsRequest.newRequest(contractsModel));
     if (!response.isSuccess()) {

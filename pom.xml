@@ -21,7 +21,7 @@
 
   <properties>
     <io.github.tigerbrokers.openapi-java-sdk.version>1.4.5</io.github.tigerbrokers.openapi-java-sdk.version>
-    <junit.junit.version>4.12</junit.junit.version>
+    <junit.junit.version>4.13.1</junit.junit.version>
     <org.slf4j.slf4j-api.version>1.7.28</org.slf4j.slf4j-api.version>
     <org.ta4j.ta4j-core.version>0.12</org.ta4j.ta4j-core.version>
     <mysql.mysql-connector-java.version>8.0.28</mysql.mysql-connector-java.version>

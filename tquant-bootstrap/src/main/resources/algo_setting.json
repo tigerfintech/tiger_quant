@@ -1,0 +1,22 @@
+{
+  "BestLimitAlgo": {
+    "enable": false,
+    "class":"com.tquant.algorithm.algos.BestLimitAlgo",
+    "direction": "BUY",
+    "volume": 100,
+    "symbol": "00700"
+  },
+  "DmaAlgo": {
+    "enable": false,
+    "class":"com.tquant.algorithm.algos.DmaAlgo",
+    "direction": "BUY",
+    "price": 13.2,
+    "volume": 100
+  },
+  "MacdAlgo": {
+    "enable": true,
+    "class":"com.tquant.algorithm.algos.MacdAlgo",
+    "symbol": "AAPL",
+    "bars": 300
+  }
+}

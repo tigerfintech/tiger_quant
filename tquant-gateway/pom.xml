@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <parent>
+    <artifactId>tiger-quant</artifactId>
+    <groupId>com.tigerbrokers</groupId>
+    <version>1.0.0</version>
+  </parent>
+  <modelVersion>4.0.0</modelVersion>
+
+  <artifactId>tquant-gateway</artifactId>
+
+  <dependencies>
+    <dependency>
+      <groupId>com.tigerbrokers</groupId>
+      <artifactId>tquant-core</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>com.tigerbrokers</groupId>
+      <artifactId>tquant-storage</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
+      <groupId>io.github.tigerbrokers</groupId>
+      <artifactId>openapi-java-sdk</artifactId>
+    </dependency>
+  </dependencies>
+
+</project>

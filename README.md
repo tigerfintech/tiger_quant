@@ -37,21 +37,21 @@ kill命令执行时会同时执行项目的stop方法回调。
 {
   "BestLimitAlgo": {
     "enable": false,
-    "class":"com.tigerbrokers.quant.algorithm.algos.BestLimitAlgo",
+    "class":"com.tquant.algorithm.algos.BestLimitAlgo",
     "direction": "BUY",
     "volume": 100,
     "symbol": "00700"
   },
   "DmaAlgo": {
     "enable": false,
-    "class":"com.tigerbrokers.quant.algorithm.algos.DmaAlgo",
+    "class":"com.tquant.algorithm.algos.DmaAlgo",
     "direction": "BUY",
     "price": 13.2,
     "volume": 100
   },
   "SpreadAlgo": {
     "enable": true,
-    "class":"com.tigerbrokers.quant.algorithm.algos.MacdAlgo",
+    "class":"com.tquant.algorithm.algos.MacdAlgo",
     "symbol": "SPY",
     "bars": 100
   }

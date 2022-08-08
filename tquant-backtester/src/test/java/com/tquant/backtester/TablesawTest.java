@@ -1,9 +1,17 @@
 package com.tquant.backtester;
 
+import java.lang.reflect.Field;
+import java.time.LocalDate;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import org.junit.Test;
 import tech.tablesaw.api.DoubleColumn;
 import tech.tablesaw.api.StringColumn;
 import tech.tablesaw.api.Table;
+import tech.tablesaw.columns.Column;
+import tech.tablesaw.io.DataFrameReader;
 
 /**
  * Description:
@@ -44,5 +52,44 @@ public class TablesawTest {
     System.out.println(cuteAnimals.last(1));
   }
 
+  @Test
+  public void testDataFrame() {
+    Map<LocalDate, DailyResult> dailyResults = new HashMap<>();
+    dailyResults.values();
+    //Column
+  }
+
+  @Test
+  public void testFields() {
+    Field[] fields = DailyResult.class.getDeclaredFields();
+
+    System.out.println("Number of fields = " + fields.length);
+
+    for (Field field : fields) {
+      System.out.println("Field name = " + field.getName()+", type = " + field.getType());
+      if (field.getType()==LocalDate.class) {
+        System.out.println("date");
+      } else if (field.getType()==double.class) {
+        System.out.println("double");
+      } else if (field.getType() == List.class) {
+        System.out.println("list");
+      } else if (field.getType() == int.class) {
+        System.out.println("int");
+      }
+    }
+  }
+
+  @Test
+  public void testCumSum() {
+    DoubleColumn doubleColumn = DoubleColumn.create("balance", 6).fillWith(0).set(0, 100D);
+
+    DoubleColumn netPnl = DoubleColumn.create("netPnl", 0,1, 2, 3, 4, 5);
+    DoubleColumn new1=doubleColumn.add(netPnl).cumSum();
+
+      Iterator<Double> iterator = new1.iterator();
+      while (iterator.hasNext()) {
+        System.out.println(iterator.next());
+      }
+    }
 
 }

@@ -41,6 +41,10 @@
       <artifactId>tablesaw-jsplot</artifactId>
     </dependency>
     <dependency>
+      <groupId>tech.tablesaw</groupId>
+      <artifactId>tablesaw-json</artifactId>
+    </dependency>
+    <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>
     </dependency>

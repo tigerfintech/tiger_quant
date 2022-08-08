@@ -1,6 +1,8 @@
 package com.tquant.backtester;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tquant.core.core.AlgoTemplate;
 import com.tquant.core.model.data.Bar;
 import com.tquant.core.model.data.BaseData;
@@ -12,15 +14,28 @@ import com.tquant.core.model.enums.Direction;
 import com.tquant.core.model.enums.OrderStatus;
 import com.tquant.storage.dao.BarDAO;
 import com.tquant.storage.dao.TickDAO;
+import it.unimi.dsi.fastutil.doubles.DoubleIterator;
+import java.lang.reflect.Field;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.function.DoublePredicate;
 import lombok.Data;
+import tech.tablesaw.api.ColumnType;
+import tech.tablesaw.api.DateColumn;
+import tech.tablesaw.api.DoubleColumn;
+import tech.tablesaw.api.IntColumn;
+import tech.tablesaw.api.Table;
+import tech.tablesaw.columns.numbers.Stats;
+import tech.tablesaw.io.Source;
+import tech.tablesaw.io.json.JsonReadOptions;
+import tech.tablesaw.io.json.JsonReader;
 
 /**
  * Description:
@@ -43,11 +58,14 @@ public class BacktestingEngine {
   private int size = 1;
   /** 价格最小变动 **/
   private double priceTick = 0;
-  private int capital = 0;
+  /** 起始资金 **/
+  private double capital = 0;
+  /** 回测模式: BAR 或 TICK **/
   private BacktestingMode mode;
   private double riskFree = 0;
+  /** 年度交易天数 **/
   private int annualDays = 240;
-
+  /** 算法策略 **/
   private AlgoTemplate strategyTemplate;
 
   private List<BaseData> historyData = new ArrayList<>();
@@ -72,6 +90,8 @@ public class BacktestingEngine {
 
   private Map<LocalDate, DailyResult> dailyResults = new HashMap<>();
   private Map<String, Trade> trades = new HashMap<>();
+
+  private Table table = Table.create();
 
   private static final String STOPORDER_PREFIX = "stop";
 
@@ -110,7 +130,7 @@ public class BacktestingEngine {
       throw new RuntimeException("the start date cannot be greater than the end date");
     }
     historyData.clear();
-    long durationDays = Math.max(Duration.between(start, end).toDays()/10, 1);
+    long durationDays = Math.max(Duration.between(start, end).toDays() / 10, 1);
     LocalDateTime deltaEnd = start.plusDays(durationDays);
 
     while (start.isBefore(end)) {
@@ -386,6 +406,7 @@ public class BacktestingEngine {
       DailyResult dailyResult = dailyResults.get(date);
       if (dailyResult == null) {
         dailyResult = new DailyResult();
+        dailyResult.setDate(date);
         dailyResults.put(date, dailyResult);
       }
       dailyResult.addTrade(trade);
@@ -400,12 +421,113 @@ public class BacktestingEngine {
       startPos = dailyResult.endPos;
     }
 
-    System.out.println("dailyResults: "+JSONObject.toJSONString(dailyResults));
+    String dailyResultJson = JSONObject.toJSONString(dailyResults.values());
+    JsonReader jsonReader = new JsonReader();
+    Map<String, ColumnType> partialColumnTypes = new HashMap<>();
+    partialColumnTypes.put("startPos", ColumnType.DOUBLE);
+    partialColumnTypes.put("endPos", ColumnType.DOUBLE);
+    partialColumnTypes.put("turnover", ColumnType.DOUBLE);
+    partialColumnTypes.put("commission", ColumnType.DOUBLE);
+    partialColumnTypes.put("slippage", ColumnType.DOUBLE);
+    partialColumnTypes.put("tradingPnl", ColumnType.DOUBLE);
+    partialColumnTypes.put("holdingPnl", ColumnType.DOUBLE);
+    partialColumnTypes.put("totalPnl", ColumnType.DOUBLE);
+    partialColumnTypes.put("netPnl", ColumnType.DOUBLE);
+    partialColumnTypes.put("closePrice", ColumnType.DOUBLE);
+    partialColumnTypes.put("preClose", ColumnType.DOUBLE);
+
+    table = jsonReader.read(
+        JsonReadOptions.builder(Source.fromString(dailyResultJson)).columnTypesPartial(partialColumnTypes).build())
+        .setName("test");
+
+    System.out.println(table);
+    System.out.println("dailyResults: " + JSONObject.toJSONString(dailyResults));
     System.out.println("finish to calculate result");
   }
 
   public void calculateStatistics() {
+    DoubleColumn balance = DoubleColumn.create("balance", table.rowCount())
+        .fillWith(0)
+        .add(table.doubleColumn("netPnl")).cumSum().add(capital);
+    table.addColumns(balance);
 
+    DoubleIterator iterator = (DoubleIterator)balance.iterator();
+    DoubleColumn preBalance= DoubleColumn.create("preBalance", table.rowCount())
+        .fillWith(0).set(0,capital);
+    int i=1;
+    while (iterator.hasNext() && i < preBalance.size()) {
+      preBalance.set(i++, iterator.next());
+    }
+    table.addColumns(preBalance);
+
+    DoubleColumn returnColumn=DoubleColumn.create("return", balance.size()).fillWith(iterator).divide(preBalance);
+    returnColumn.filter(new DoublePredicate() {
+      @Override public boolean test(double value) {
+        return value<=0;
+      }
+    }).fillWith(0);
+    table.addColumns(returnColumn);
+
+    DoubleColumn highLevelColumn =
+        DoubleColumn.create("highLevelColumn", balance.size())
+            .fillWith((DoubleIterator) balance.iterator())
+            .rolling(balance.size())
+            .max();
+    DoubleColumn drawdown = balance.subtract(highLevelColumn);
+    DoubleColumn ddpercent = drawdown.divide(highLevelColumn).multiply(100);
+    table.addColumns(highLevelColumn, drawdown, ddpercent);
+
+    LocalDate startDate = null;
+    LocalDate endDate = null;
+    int totalDays = table.rowCount();
+    int profitDays = table.doubleColumn("netPnl").isGreaterThan(0).size();
+    int lossDays = table.doubleColumn("netPnl").isLessThan(0).size();
+
+    double endBalance = balance.get(balance.size() - 1);
+    double maxDrawdown = drawdown.min();
+    double maxDDpercent = ddpercent.min();
+
+    int maxDrawdownDuration = 0;
+    double totalNetPnl = table.doubleColumn("netPnl").sum();
+    double dailyNetPnl = totalNetPnl/totalDays;
+    double totalCommission = table.doubleColumn("commission").sum();
+    double dailyCommission = totalCommission/totalDays;
+    double totalSlippage = table.doubleColumn("slippage").sum();
+    double dailySlippage = totalSlippage/totalDays;
+    double totalTurnover = table.doubleColumn("turnover").sum();
+    double dailyTurnover = totalTurnover/totalDays;
+    int totalTradeCount =(int)table.intColumn("tradeCount").sum();
+    int dailyTradeCount = totalTradeCount / totalDays;
+    double totalReturn = (endBalance / capital - 1) * 100;
+    double annualReturn = totalReturn / totalDays * annualDays;
+    double dailyReturn = returnColumn.mean() * 100;
+    double returnStd = returnColumn.standardDeviation() * 100;
+    double sharpeRatio = 0;
+    if (returnStd > 0) {
+      double dailyRiskFree = riskFree / Math.sqrt(annualDays);
+      sharpeRatio = (dailyReturn - dailyRiskFree) / returnStd * Math.sqrt(annualDays);
+    }
+    double returnDrawdownRatio = 0;
+    if (maxDDpercent > 0) {
+      returnDrawdownRatio = -totalReturn / maxDDpercent;
+    }
+
+    System.out.format("首个交易日：\t,最后交易日：\t,总交易日：\t,盈利交易日：\t,亏损交易日：\t", startDate, endDate, totalDays, profitDays,
+        lossDays);
+
+    System.out.format("起始资金：\t %.2f, 结束资金：\t %.2f", this.capital, endBalance);
+
+    System.out.format("总收益率：\t %.2f, 年化收益：\t %.2f, 最大回撤: \t %.2f, 百分比最大回撤: \t %.2f, 最长回撤天数: \t %.2f", totalReturn,
+        annualReturn, maxDrawdown, maxDDpercent, maxDrawdownDuration);
+
+    System.out.format("总盈亏：\t %.2f, 总手续费：\t %.2f, 总滑点：\t %.2f, 总成交金额：\t %.2f, 总成交笔数：\t %.2f" + totalNetPnl, totalCommission, totalSlippage,
+        totalTurnover, totalTradeCount);
+
+    System.out.format("日均盈亏：\t %.2f, 日均手续费：\t %.2f, 日均滑点：\t %.2f, 日均成交金额：\t %.2f, 日均成交笔数：\t", dailyNetPnl, dailyCommission, dailySlippage,
+        dailyTurnover, dailyTradeCount);
+
+    System.out.format("日均收益率：\t %.2f, 收益标准差：\t %.2f, Sharpe Ratio：\t %.2f, 收益回撤比：\t %.2f", dailyReturn, returnStd, sharpeRatio,
+        returnDrawdownRatio);
   }
 
   void showChart() {
@@ -415,7 +537,6 @@ public class BacktestingEngine {
   public void addTrade(Trade trade) {
     trades.put(trade.getId(), trade);
   }
-
 }
 
 @Data
@@ -425,16 +546,17 @@ class DailyResult {
   double closePrice;
   double preClose;
   int tradeCount = 0;
+  @JSONField(serialize = false)
   List<Trade> trades = new ArrayList<>();
-  double startPos = 0;
-  double endPos = 0;
-  double turnover = 0;
-  double commission = 0;
-  double slippage = 0;
-  double tradingPnl = 0;
-  double holdingPnl = 0;
-  double totalPnl = 0;
-  double netPnl = 0;
+  double startPos = 0.0;
+  double endPos = 0.0;
+  double turnover = 0.0;
+  double commission = 0.0;
+  double slippage = 0.0;
+  double tradingPnl = 0.0;
+  double holdingPnl = 0.0;
+  double totalPnl = 0.0;
+  double netPnl = 0.0;
 
   void addTrade(Trade trade) {
     trades.add(trade);
@@ -467,5 +589,4 @@ class DailyResult {
     this.totalPnl = tradingPnl + holdingPnl;
     this.netPnl = totalPnl - commission - slippage;
   }
-
 }

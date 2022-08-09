@@ -6,7 +6,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import lombok.Data;
 import org.ta4j.core.BaseBar;
-import org.ta4j.core.num.PrecisionNum;
+import org.ta4j.core.num.DecimalNum;
 
 /**
  * Description:
@@ -29,14 +29,10 @@ public class Bar implements BaseData {
   private double amount;
 
   public BaseBar toBaseBar() {
-    return new BaseBar(duration, time.atZone(ZoneId.systemDefault()),
-        PrecisionNum.valueOf(open),
-        PrecisionNum.valueOf(high),
-        PrecisionNum.valueOf(low),
-        PrecisionNum.valueOf(close),
-        PrecisionNum.valueOf(volume),
-        PrecisionNum.valueOf(amount)
-    );
+    return BaseBar.builder(DecimalNum::valueOf, Number.class).timePeriod(duration).endTime(time.atZone(ZoneId.systemDefault()))
+        .openPrice(open).highPrice(high).lowPrice(low).closePrice(close).volume(volume)
+        .build();
+    //return new BaseBar(duration, time.atZone(ZoneId.systemDefault()), open, high, low, close, volume, amount);
   }
 
   public static Duration getDurationByKType(BarType barType) {

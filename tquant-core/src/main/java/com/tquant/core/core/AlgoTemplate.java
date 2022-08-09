@@ -1,6 +1,5 @@
 package com.tquant.core.core;
 
-import com.tquant.core.core.AlgoEngine;
 import com.tquant.core.model.data.Asset;
 import com.tquant.core.model.data.Bar;
 import com.tquant.core.model.data.Contract;
@@ -133,6 +132,10 @@ public abstract class AlgoTemplate {
 
   public void cancelSubscribe(String template, String symbol) {
     algoEngine.cancelSubscribe(template, symbol);
+  }
+
+  public void sendOrder(String symbol, Direction direction, double price, int volume, boolean stop) {
+
   }
 
   public String buy(String symbol, Double price, int volume, OrderType orderType) {

@@ -18,5 +18,11 @@
     "class":"com.tquant.algorithm.algos.MacdAlgo",
     "symbol": "AAPL",
     "bars": 300
+  },
+  "SmaAlgo": {
+    "enable": false,
+    "class":"com.tquant.algorithm.algos.MacdAlgo",
+    "symbol": "AAPL",
+    "bars": 300
   }
 }

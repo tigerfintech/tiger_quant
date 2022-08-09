@@ -337,7 +337,7 @@ public class BacktestingEngine {
     }
   }
 
-  void sendOrder(Direction direction, double price, double volume, boolean stop) {
+  void sendOrder(Direction direction, double price, int volume, boolean stop) {
     if (stop) {
       sendStopOrder(direction, price, volume);
     } else {
@@ -345,7 +345,7 @@ public class BacktestingEngine {
     }
   }
 
-  long sendStopOrder(Direction direction, double price, double volume) {
+  long sendStopOrder(Direction direction, double price, int volume) {
     stopOrderCount += 1;
     Order order = new Order();
     order.setSymbol(this.symbol);
@@ -355,10 +355,16 @@ public class BacktestingEngine {
     return order.getId();
   }
 
-  long sendLimitOrder(Direction direction, double price, double volume) {
+  long sendLimitOrder(Direction direction, double price, int volume) {
     limitOrderCount += 1;
     Order order = new Order();
+    order.setId(limitOrderCount);
     order.setSymbol(this.symbol);
+    order.setPrice(price);
+    order.setVolume(volume);
+    order.setDirection(direction.name());
+    order.setStatus(OrderStatus.PendingSubmit.name());
+    order.setTime(System.currentTimeMillis());
 
     activeLimitOrders.put(order.getId() + "", order);
     limitOrders.put(order.getId() + "", order);

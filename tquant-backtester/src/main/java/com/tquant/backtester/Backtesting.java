@@ -1,8 +1,6 @@
 package com.tquant.backtester;
 
-import com.tquant.algorithm.algos.SmaAlgo;
 import com.tquant.core.core.AlgoEngine;
-import com.tquant.core.core.AlgoTemplate;
 import com.tquant.algorithm.algos.MacdAlgo;
 import com.tquant.core.core.MainEngine;
 import com.tquant.core.event.EventEngine;
@@ -11,16 +9,9 @@ import com.tquant.gateway.tiger.TigerGateway;
 import com.tquant.core.model.data.Trade;
 import com.tquant.core.model.enums.BacktestingMode;
 import com.tquant.core.model.enums.OrderType;
-import java.time.Duration;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import org.ta4j.core.BarSeries;
-import org.ta4j.core.BaseBar;
-import org.ta4j.core.BaseBarSeries;
-import org.ta4j.core.num.DecimalNum;
 
 /**
  * Description:
@@ -70,26 +61,8 @@ public class Backtesting {
     backtestingEngine.calculateStatistics();
   }
 
-  class MacdAlgoBacktesting extends MacdAlgo {
-    private BacktestingEngine backtestingEngine;
-
-    public MacdAlgoBacktesting(Map<String, Object> settings) {
-      super(settings);
-    }
-
-    public void setBacktestingEngine(BacktestingEngine backtestingEngine) {
-      this.backtestingEngine = backtestingEngine;
-    }
-
-    @Override
-    public void sendOrder(String symbol, Direction direction, double price, int volume, boolean stop) {
-      backtestingEngine.sendOrder(direction, price, volume, stop);
-    }
-  }
-
 
   private void testCalculateResult() {
-
     BacktestingEngine backtestingEngine = initEngine();
     LocalDateTime start = backtestingEngine.getStart();
     for (int i = 0; i < 10; i++) {
@@ -108,28 +81,21 @@ public class Backtesting {
     backtestingEngine.calculateResult();
     backtestingEngine.calculateStatistics();
   }
+}
 
-  private static BarSeries createBarSeries() {
-    BarSeries series = new BaseBarSeries();
-    series.addBar(createBar(createDay(1), 100.0, 100.0, 100.0, 100.0, 1060));
-    series.addBar(createBar(createDay(2), 110.0, 110.0, 110.0, 110.0, 1070));
-    series.addBar(createBar(createDay(3), 140.0, 140.0, 140.0, 140.0, 1080));
-    series.addBar(createBar(createDay(4), 119.0, 119.0, 119.0, 119.0, 1090));
-    series.addBar(createBar(createDay(5), 100.0, 100.0, 100.0, 100.0, 1100));
-    series.addBar(createBar(createDay(6), 110.0, 110.0, 110.0, 110.0, 1110));
-    series.addBar(createBar(createDay(7), 120.0, 120.0, 120.0, 120.0, 1120));
-    series.addBar(createBar(createDay(8), 130.0, 130.0, 130.0, 130.0, 1130));
-    return series;
+class MacdAlgoBacktesting extends MacdAlgo {
+  private BacktestingEngine backtestingEngine;
+
+  public MacdAlgoBacktesting(Map<String, Object> settings) {
+    super(settings);
   }
 
-  private static BaseBar createBar(ZonedDateTime endTime, Number openPrice, Number highPrice, Number lowPrice,
-      Number closePrice, Number volume) {
-    return BaseBar.builder(DecimalNum::valueOf, Number.class).timePeriod(Duration.ofDays(1)).endTime(endTime)
-        .openPrice(openPrice).highPrice(highPrice).lowPrice(lowPrice).closePrice(closePrice).volume(volume)
-        .build();
+  public void setBacktestingEngine(BacktestingEngine backtestingEngine) {
+    this.backtestingEngine = backtestingEngine;
   }
 
-  private static ZonedDateTime createDay(int day) {
-    return ZonedDateTime.of(2022, 01, day, 12, 0, 0, 0, ZoneId.systemDefault());
+  @Override
+  public void sendOrder(String symbol, Direction direction, double price, int volume, boolean stop) {
+    backtestingEngine.sendOrder(direction, price, volume, stop);
   }
 }

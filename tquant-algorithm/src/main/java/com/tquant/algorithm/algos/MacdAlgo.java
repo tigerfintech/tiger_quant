@@ -10,6 +10,7 @@ import com.tquant.core.model.data.Trade;
 import com.tquant.core.model.enums.BarType;
 import com.tquant.core.model.enums.Direction;
 import com.tquant.core.model.enums.OrderStatus;
+import com.tquant.core.model.enums.OrderType;
 import com.tquant.storage.dao.BarDAO;
 import com.tquant.core.util.BarGenerator;
 import java.math.BigDecimal;
@@ -31,7 +32,6 @@ import org.ta4j.core.indicators.EMAIndicator;
 import org.ta4j.core.indicators.MACDIndicator;
 import org.ta4j.core.indicators.RSIIndicator;
 import org.ta4j.core.indicators.helpers.ClosePriceIndicator;
-import org.ta4j.core.num.DoubleNum;
 import org.ta4j.core.rules.CrossedDownIndicatorRule;
 import org.ta4j.core.rules.CrossedUpIndicatorRule;
 
@@ -115,7 +115,6 @@ public class MacdAlgo extends AlgoTemplate {
 
   @Override
   public void onTrade(Trade trade) {
-    //barSeries.addPrice(DoubleNum.valueOf(trade.getPrice()));
   }
 
   @Override
@@ -130,13 +129,6 @@ public class MacdAlgo extends AlgoTemplate {
   }
 
   public void executeStrategy(String symbol, double price) {
-    Strategy strategy = symbolStrategy.get(symbol);
-    TradingRecord tradingRecord = symbolTradingRecord.get(symbol);
-    //if (strategy.shouldEnter(barSeries.getEndIndex(), tradingRecord)) {
-    //  executeCommand(symbol, price, Direction.BUY);
-    //} else if (strategy.shouldExit(barSeries.getEndIndex(), tradingRecord)) {
-    //  executeCommand(symbol, price, Direction.SELL);
-    //}
     if (price >= 145) {
       executeCommand(symbol, price, Direction.BUY);
     } else {
@@ -155,15 +147,13 @@ public class MacdAlgo extends AlgoTemplate {
   public void sendOrder(String symbol, Direction direction, double price, int volume, boolean stop) {
     Position position = getPosition(symbol);
     if (direction == Direction.BUY) {
-      sendOrder(symbol, direction, round(price, 2), buyQuantity, false);
-      //id = buy(symbol, round(price, 2), buyQuantity, OrderType.LMT);
+      buy(symbol, round(price, 2), buyQuantity, OrderType.LMT);
     } else {
       if (position == null || position.getPosition() < 0) {
         log("{} position is null {}", getAlgoName(), position);
         return;
       }
-      sendOrder(symbol, direction, round(price, 2),  position.getPosition(), false);
-      //id = sell(symbol, round(price, 2), position.getPosition(), OrderType.LMT);
+      sell(symbol, round(price, 2), position.getPosition(), OrderType.LMT);
     }
   }
 

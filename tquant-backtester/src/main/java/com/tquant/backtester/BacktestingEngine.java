@@ -21,12 +21,16 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.DoublePredicate;
 import lombok.Data;
+import lombok.Getter;
 import tech.tablesaw.api.ColumnType;
 import tech.tablesaw.api.DateColumn;
 import tech.tablesaw.api.DoubleColumn;
@@ -48,7 +52,9 @@ public class BacktestingEngine {
   private String symbol;
   private int interval;
   private String period;
+  @Getter
   private LocalDateTime start;
+  @Getter
   private LocalDateTime end;
   /** 佣金费率 **/
   private double rate = 0;
@@ -65,6 +71,8 @@ public class BacktestingEngine {
   private double riskFree = 0;
   /** 年度交易天数 **/
   private int annualDays = 240;
+  /** 昨日收盘价 **/
+  double preClose = 0;
   /** 算法策略 **/
   private AlgoTemplate strategyTemplate;
 
@@ -88,7 +96,7 @@ public class BacktestingEngine {
   private double tradePrice = 0;
   private int posChange = 0;
 
-  private Map<LocalDate, DailyResult> dailyResults = new HashMap<>();
+  private Map<LocalDate, DailyResult> dailyResults = new LinkedHashMap<>();
   private Map<String, Trade> trades = new HashMap<>();
 
   private Table table = Table.create();
@@ -97,7 +105,7 @@ public class BacktestingEngine {
 
   public BacktestingEngine(String symbol, int interval, String period, LocalDateTime start, double rate,
       double slippage, int size,
-      double priceTick, int capital, LocalDateTime end, BacktestingMode mode, double riskFree, int annualDays) {
+      double priceTick, int capital, LocalDateTime end, BacktestingMode mode, double riskFree, int annualDays, double preClose) {
     this.symbol = symbol;
     this.interval = interval;
     this.period = period;
@@ -111,6 +119,7 @@ public class BacktestingEngine {
     this.mode = mode;
     this.riskFree = riskFree;
     this.annualDays = annualDays;
+    this.preClose = preClose;
   }
 
   void clearData() {
@@ -412,7 +421,7 @@ public class BacktestingEngine {
       dailyResult.addTrade(trade);
     }
 
-    double preClose = 0;
+
     double startPos = 0;
 
     for (DailyResult dailyResult : dailyResults.values()) {
@@ -441,7 +450,11 @@ public class BacktestingEngine {
         .setName("test");
 
     System.out.println(table);
-    System.out.println("dailyResults: " + JSONObject.toJSONString(dailyResults));
+    System.out.println("dailyResults: \n" + JSONObject.toJSONString(dailyResults));
+    System.out.println("trades:");
+    for (DailyResult result : dailyResults.values()) {
+      System.out.println(JSONObject.toJSONString(result.getTrades()));
+    }
     System.out.println("finish to calculate result");
   }
 
@@ -477,8 +490,9 @@ public class BacktestingEngine {
     DoubleColumn ddpercent = drawdown.divide(highLevelColumn).multiply(100);
     table.addColumns(highLevelColumn, drawdown, ddpercent);
 
-    LocalDate startDate = null;
-    LocalDate endDate = null;
+    DateColumn date = table.dateColumn("date");
+    LocalDate startDate = date.min();
+    LocalDate endDate = date.max();
     int totalDays = table.rowCount();
     int profitDays = table.doubleColumn("netPnl").isGreaterThan(0).size();
     int lossDays = table.doubleColumn("netPnl").isLessThan(0).size();
@@ -512,21 +526,21 @@ public class BacktestingEngine {
       returnDrawdownRatio = -totalReturn / maxDDpercent;
     }
 
-    System.out.format("首个交易日：\t,最后交易日：\t,总交易日：\t,盈利交易日：\t,亏损交易日：\t", startDate, endDate, totalDays, profitDays,
+    System.out.format("首个交易日：\t%s,最后交易日：\t%s,总交易日：\t%d,盈利交易日：\t%d,亏损交易日：\t%d \n", startDate, endDate, totalDays, profitDays,
         lossDays);
 
-    System.out.format("起始资金：\t %.2f, 结束资金：\t %.2f", this.capital, endBalance);
+    System.out.format("起始资金：\t %.2f, 结束资金：\t %.2f \n", this.capital, endBalance);
 
-    System.out.format("总收益率：\t %.2f, 年化收益：\t %.2f, 最大回撤: \t %.2f, 百分比最大回撤: \t %.2f, 最长回撤天数: \t %.2f", totalReturn,
+    System.out.format("总收益率：\t %.2f, 年化收益：\t %.2f 最大回撤: \t %.2f, 百分比最大回撤: \t %.2f, 最长回撤天数: \t %d \n", totalReturn,
         annualReturn, maxDrawdown, maxDDpercent, maxDrawdownDuration);
 
-    System.out.format("总盈亏：\t %.2f, 总手续费：\t %.2f, 总滑点：\t %.2f, 总成交金额：\t %.2f, 总成交笔数：\t %.2f" + totalNetPnl, totalCommission, totalSlippage,
-        totalTurnover, totalTradeCount);
+    System.out.format("总盈亏：\t %.2f, 总手续费：\t %.2f, 总滑点：\t %.2f, 总成交金额：\t %.2f , 总成交笔数：\t %d \n", totalNetPnl,
+        totalCommission, totalSlippage, totalTurnover, totalTradeCount);
 
-    System.out.format("日均盈亏：\t %.2f, 日均手续费：\t %.2f, 日均滑点：\t %.2f, 日均成交金额：\t %.2f, 日均成交笔数：\t", dailyNetPnl, dailyCommission, dailySlippage,
+    System.out.format("日均盈亏：\t %.2f, 日均手续费：\t %.2f, 日均滑点：\t %.2f, 日均成交金额：\t %.2f, 日均成交笔数：\t %d \n", dailyNetPnl, dailyCommission, dailySlippage,
         dailyTurnover, dailyTradeCount);
 
-    System.out.format("日均收益率：\t %.2f, 收益标准差：\t %.2f, Sharpe Ratio：\t %.2f, 收益回撤比：\t %.2f", dailyReturn, returnStd, sharpeRatio,
+    System.out.format("日均收益率：\t %.2f, 收益标准差：\t %.2f, Sharpe Ratio：\t %.2f, 收益回撤比：\t %.2f \n", dailyReturn, returnStd, sharpeRatio,
         returnDrawdownRatio);
   }
 
@@ -554,6 +568,7 @@ class DailyResult {
   double commission = 0.0;
   double slippage = 0.0;
   double tradingPnl = 0.0;
+  //持仓盈亏
   double holdingPnl = 0.0;
   double totalPnl = 0.0;
   double netPnl = 0.0;
@@ -566,27 +581,28 @@ class DailyResult {
     if (preClose > 0) {
       this.preClose = preClose;
     } else {
-      preClose = 1;
+      this.preClose = 1;
     }
     this.startPos = startPos;
     this.endPos = startPos;
-    this.holdingPnl = startPos * (closePrice - preClose) * size;
+    this.holdingPnl = startPos * (this.closePrice - this.preClose) * size;
     this.tradeCount = trades.size();
 
-    double posChange = 0;
+    double posChange;
     for (Trade trade : trades) {
       if (trade.getDirection().equalsIgnoreCase(Direction.BUY.name())) {
         posChange = trade.getVolume();
+      } else {
+        posChange = -trade.getVolume();
       }
       this.endPos += posChange;
 
-      this.turnover = trade.getVolume() * size * trade.getPrice();
+      this.turnover += trade.getVolume() * size * trade.getPrice();
       this.tradingPnl += posChange * (closePrice - trade.getPrice()) * size;
       this.slippage += trade.getVolume() * size * slippage;
-      this.turnover += turnover;
-      this.commission += turnover * rate;
+      this.commission += (double)Math.round(turnover * rate*100)/100;
     }
-    this.totalPnl = tradingPnl + holdingPnl;
-    this.netPnl = totalPnl - commission - slippage;
+    this.totalPnl = (double) Math.round((tradingPnl + holdingPnl) * 100) / 100;
+    this.netPnl = (double) Math.round((totalPnl - commission - slippage) * rate * 100) / 100;
   }
 }

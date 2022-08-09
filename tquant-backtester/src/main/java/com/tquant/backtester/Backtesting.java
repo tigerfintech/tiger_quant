@@ -30,8 +30,8 @@ public class Backtesting {
   private BacktestingEngine initEngine() {
     LocalDateTime start = LocalDateTime.of(2021, 1, 1, 0, 0, 0);
     LocalDateTime end = LocalDateTime.of(2021, 12, 31, 23, 59, 59);
-    return new BacktestingEngine("AAPL", 60, "day", start, 3 / 10000,
-        0.2, 1, 0.1, 1000000, end, BacktestingMode.BAR, 0.1, 240);
+    return new BacktestingEngine("AAPL", 60, "day", start, 3D / 10000,
+        0.2, 1, 0.1, 1000000, end, BacktestingMode.BAR, 0.1, 240, 10);
   }
 
   private Map<String, Object> initSettings() {
@@ -61,11 +61,13 @@ public class Backtesting {
   }
 
   private void testCalculateResult() {
+
     BacktestingEngine backtestingEngine = initEngine();
+    LocalDateTime start = backtestingEngine.getStart();
     for (int i = 0; i < 10; i++) {
       Trade trade = new Trade();
       trade.setId(i + "");
-      trade.setTime(LocalDateTime.now());
+      trade.setTime(start);
       trade.setVolume(100);
       trade.setDirection(i % 2 == 0 ? "BUY" : "SELL");
       trade.setPrice(10+i);
@@ -73,6 +75,7 @@ public class Backtesting {
       trade.setSymbol("AAPL");
       trade.setOrderType(OrderType.LMT.getType());
       backtestingEngine.addTrade(trade);
+      start = start.plusDays(1);
     }
     backtestingEngine.calculateResult();
     backtestingEngine.calculateStatistics();

@@ -548,7 +548,7 @@ public class BacktestingEngine {
       returnDrawdownRatio = -totalReturn / maxDDpercent;
     }
 
-    System.out.format("首个交易日：\t%s,最后交易日：\t%s,总交易日：\t%d,盈利交易日：\t%d,亏损交易日：\t%d \n", startDate, endDate, totalDays, profitDays,
+    System.out.format("首个交易日：\t%s, 最后交易日：\t%s, 总交易日：\t%d, 盈利交易日：\t%d, 亏损交易日：\t%d \n", startDate, endDate, totalDays, profitDays,
         lossDays);
 
     System.out.format("起始资金：\t %.2f, 结束资金：\t %.2f \n", this.capital, endBalance);

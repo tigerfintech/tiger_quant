@@ -129,9 +129,9 @@ public class MacdAlgo extends AlgoTemplate {
   }
 
   public void executeStrategy(String symbol, double price) {
-    if (price >= 145) {
+    if (price < 120) {
       executeCommand(symbol, price, Direction.BUY);
-    } else {
+    } else if(price>150){
       executeCommand(symbol, price, Direction.SELL);
     }
   }

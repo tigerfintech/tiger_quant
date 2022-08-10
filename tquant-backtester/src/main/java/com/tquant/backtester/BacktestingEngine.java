@@ -487,14 +487,23 @@ public class BacktestingEngine {
     }).fillWith(0);
     table.addColumns(returnColumn);
 
-    DoubleColumn highLevelColumn =
-        DoubleColumn.create("highLevelColumn", balance.size())
-            .fillWith((DoubleIterator) balance.iterator())
-            .rolling(balance.size())
-            .max();
-    DoubleColumn drawdown = balance.subtract(highLevelColumn);
-    DoubleColumn ddpercent = drawdown.divide(highLevelColumn).multiply(100);
+    List<Double> balanceList = balance.asList();
+    List<Double> higlLevelList = new ArrayList<>(balanceList.size());
+    double maxValue = Double.MIN_VALUE;
+    for (Double value : balanceList) {
+      maxValue = Math.max(maxValue, value);
+      higlLevelList.add(maxValue);
+    }
+    DoubleColumn highLevelColumn = DoubleColumn.create("highLevelColumn", higlLevelList);
+
+    DoubleColumn drawdown = balance.subtract(highLevelColumn).setName("drawdown");
+    DoubleColumn ddpercent = drawdown.divide(highLevelColumn).multiply(100).setName("ddpercent");
     table.addColumns(highLevelColumn, drawdown, ddpercent);
+
+    System.out.println("balance:" + balanceList);
+    System.out.println("highLevelColumn:" + highLevelColumn.asList());
+    System.out.println("drawdown:" + drawdown.asList());
+    System.out.println("ddpercent:" + ddpercent.asList());
 
     DateColumn date = table.dateColumn("date");
     LocalDate startDate = date.min();
@@ -507,7 +516,14 @@ public class BacktestingEngine {
     double maxDrawdown = drawdown.min();
     double maxDDpercent = ddpercent.min();
 
-    int maxDrawdownDuration = 0;
+
+    int maxDrawdownEnd = drawdown.indexOf(drawdown.min());
+    int maxDrawdownStart=maxDrawdownEnd;
+    while (maxDrawdownStart >= 1 && drawdown.get(maxDrawdownStart) < drawdown.get(maxDrawdownStart - 1)) {
+      maxDrawdownStart--;
+    }
+    int maxDrawdownDuration = maxDrawdownEnd - maxDrawdownStart;
+
     double totalNetPnl = table.doubleColumn("netPnl").sum();
     double dailyNetPnl = totalNetPnl/totalDays;
     double totalCommission = table.doubleColumn("commission").sum();
@@ -518,7 +534,7 @@ public class BacktestingEngine {
     double dailyTurnover = totalTurnover/totalDays;
     int totalTradeCount =(int)table.intColumn("tradeCount").sum();
     int dailyTradeCount = totalTradeCount / totalDays;
-    double totalReturn = (endBalance / capital - 1) * 100;
+    double totalReturn = (endBalance / capital - 1.0D) * 100;
     double annualReturn = totalReturn / totalDays * annualDays;
     double dailyReturn = returnColumn.mean() * 100;
     double returnStd = returnColumn.standardDeviation() * 100;
@@ -606,9 +622,11 @@ class DailyResult {
       this.turnover += trade.getVolume() * size * trade.getPrice();
       this.tradingPnl += posChange * (closePrice - trade.getPrice()) * size;
       this.slippage += trade.getVolume() * size * slippage;
-      this.commission += (double)Math.round(turnover * rate*100)/100;
+      this.commission += turnover * rate;
     }
-    this.totalPnl = (double) Math.round((tradingPnl + holdingPnl) * 100) / 100;
-    this.netPnl = (double) Math.round((totalPnl - commission - slippage) * rate * 100) / 100;
+
+    this.totalPnl = tradingPnl + holdingPnl;
+    this.netPnl = totalPnl - commission - slippage;
+
   }
 }

@@ -32,16 +32,16 @@ public class QuantUtils {
    * @param column column
    * @return return
    */
-  public static double[] toDoubleArray(List<StockData> stockDatas,String column){
-    List<Double> values = stockDatas.parallelStream().map(stockData -> stockData.get(column)).collect(Collectors.toList());
+  public static double[] toDoubleArray(List<? extends StockData> stockDatas,String column){
+    List<Double> values = stockDatas.parallelStream().map(stockData -> stockData.attr(column)).collect(Collectors.toList());
     double[] doubles = QuantUtils.toDoubleArray(values);
     return doubles;
   }
 
-  public static boolean addDoubleArrayToList(double[] values,List<StockData> stockDatas,String column){
+  public static boolean addDoubleArrayToList(double[] values,List<? extends StockData> stockDatas,String column){
     if(values.length == stockDatas.size()){
       for(int i =0 ;i<values.length;i++){
-        stockDatas.get(i).put(column,new BigDecimal(values[i]).setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue());
+        stockDatas.get(i).attr(column,new BigDecimal(values[i]).setScale(2,BigDecimal.ROUND_HALF_UP).doubleValue());
       }
       return true;
     }else{

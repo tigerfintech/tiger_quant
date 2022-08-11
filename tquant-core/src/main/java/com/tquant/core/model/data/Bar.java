@@ -4,7 +4,6 @@ import com.tquant.core.model.enums.BarType;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import lombok.Data;
 import org.ta4j.core.BaseBar;
 import org.ta4j.core.num.DecimalNum;
 
@@ -14,8 +13,7 @@ import org.ta4j.core.num.DecimalNum;
  * @author kevin
  * @date 2019/08/16
  */
-@Data
-public class Bar implements BaseData {
+public class Bar extends StockData implements BaseData {
 
   private String symbol;
   private String period;
@@ -28,11 +26,11 @@ public class Bar implements BaseData {
   private long volume;
   private double amount;
 
+
   public BaseBar toBaseBar() {
     return BaseBar.builder(DecimalNum::valueOf, Number.class).timePeriod(duration).endTime(time.atZone(ZoneId.systemDefault()))
         .openPrice(open).highPrice(high).lowPrice(low).closePrice(close).volume(volume)
         .build();
-    //return new BaseBar(duration, time.atZone(ZoneId.systemDefault()), open, high, low, close, volume, amount);
   }
 
   public static Duration getDurationByKType(BarType barType) {
@@ -76,4 +74,89 @@ public class Bar implements BaseData {
         return Duration.ofDays(1);
     }
   }
+
+  public String getSymbol() {
+    return symbol;
+  }
+
+  public void setSymbol(String symbol) {
+    this.symbol = symbol;
+  }
+
+  public String getPeriod() {
+    return period;
+  }
+
+  public void setPeriod(String period) {
+    this.period = period;
+  }
+
+  public Duration getDuration() {
+    return duration;
+  }
+
+  public void setDuration(Duration duration) {
+    this.duration = duration;
+  }
+
+  public double getOpen() {
+    return open;
+  }
+
+  public void setOpen(double open) {
+    this.open = open;
+    attr("open", this.open);
+  }
+
+  public double getClose() {
+    return close;
+  }
+
+  public void setClose(double close) {
+    this.close = close;
+    attr("close", this.close);
+  }
+
+  public double getHigh() {
+    return high;
+  }
+
+  public void setHigh(double high) {
+    this.high = high;
+    attr("high", this.high);
+  }
+
+  public double getLow() {
+    return low;
+  }
+
+  public void setLow(double low) {
+    this.low = low;
+    attr("low", this.low);
+  }
+
+  public LocalDateTime getTime() {
+    return time;
+  }
+
+  public void setTime(LocalDateTime time) {
+    this.time = time;
+  }
+
+  public long getVolume() {
+    return volume;
+  }
+
+  public void setVolume(long volume) {
+    this.volume = volume;
+  }
+
+  public double getAmount() {
+    return amount;
+  }
+
+  public void setAmount(double amount) {
+    this.amount = amount;
+  }
+
 }

@@ -3,7 +3,6 @@ package com.tquant.core.model.data;
 import com.alibaba.fastjson.JSON;
 import com.google.common.collect.Maps;
 import java.util.Date;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
@@ -12,7 +11,7 @@ import java.util.Map;
  * @author kevin
  * @date 2022/08/05
  */
-public class StockData extends LinkedHashMap<String, Double> implements Comparable<StockData> {
+public class StockData implements Comparable<StockData> {
 
   /**
    * 股票代码
@@ -32,7 +31,7 @@ public class StockData extends LinkedHashMap<String, Double> implements Comparab
   /**
    * 属性值
    */
-  public Map<String, String> attribute = Maps.newHashMap();
+  public Map<String, Double> attribute = Maps.newLinkedHashMap();
 
   public StockData() {
   }
@@ -41,15 +40,11 @@ public class StockData extends LinkedHashMap<String, Double> implements Comparab
     this.symbol = symbol;
   }
 
-  public StockData(Map<String, Double> map) {
-    this.putAll(map);
-  }
-
-  public void attr(String key, String val) {
+  public void attr(String key, Double val) {
     attribute.put(key, val);
   }
 
-  public String attr(String key) {
+  public Double attr(String key) {
     return attribute.get(key);
   }
 

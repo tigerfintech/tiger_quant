@@ -1,7 +1,7 @@
 package com.tquant.backtester;
 
+import com.tquant.algorithm.algos.SmaAlgo;
 import com.tquant.core.core.AlgoEngine;
-import com.tquant.algorithm.algos.MacdAlgo;
 import com.tquant.core.core.MainEngine;
 import com.tquant.core.event.EventEngine;
 import com.tquant.core.model.enums.Direction;
@@ -46,7 +46,7 @@ public class Backtesting {
     BacktestingEngine backtestingEngine = initEngine();
     Map<String, Object> settings = initSettings();
 
-    MacdAlgoBacktesting algoTemplate = new MacdAlgoBacktesting(settings);
+    BacktestingAlgo algoTemplate = new BacktestingAlgo(settings);
     EventEngine eventEngine = new EventEngine();
     MainEngine mainEngine = new MainEngine(eventEngine);
     mainEngine.addGateway(new TigerGateway(eventEngine));
@@ -60,7 +60,6 @@ public class Backtesting {
     backtestingEngine.calculateResult();
     backtestingEngine.calculateStatistics();
   }
-
 
   private void testCalculateResult() {
     BacktestingEngine backtestingEngine = initEngine();
@@ -83,10 +82,10 @@ public class Backtesting {
   }
 }
 
-class MacdAlgoBacktesting extends MacdAlgo {
+class BacktestingAlgo extends SmaAlgo {
   private BacktestingEngine backtestingEngine;
 
-  public MacdAlgoBacktesting(Map<String, Object> settings) {
+  public BacktestingAlgo(Map<String, Object> settings) {
     super(settings);
   }
 

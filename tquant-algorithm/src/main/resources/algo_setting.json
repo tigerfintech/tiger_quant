@@ -13,15 +13,9 @@
     "price": 13.2,
     "volume": 100
   },
-  "MacdAlgo": {
-    "enable": true,
-    "class":"com.tquant.algorithm.algos.MacdAlgo",
-    "symbol": "AAPL",
-    "bars": 300
-  },
   "SmaAlgo": {
-    "enable": false,
-    "class":"com.tquant.algorithm.algos.MacdAlgo",
+    "enable": true,
+    "class":"com.tquant.algorithm.algos.SmaAlgo",
     "symbol": "AAPL",
     "bars": 300
   }

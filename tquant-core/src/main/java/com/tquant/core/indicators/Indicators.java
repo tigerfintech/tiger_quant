@@ -24,7 +24,7 @@ public class Indicators {
     core = new Core();
   }
 
-  public List<StockData> sma(List<StockData> stockDatas){
+  public List<? extends StockData> sma(List<? extends StockData> stockDatas){
     stockDatas = sma(stockDatas,5);
     stockDatas = sma(stockDatas,10);
     stockDatas = sma(stockDatas,20);
@@ -34,12 +34,11 @@ public class Indicators {
     return stockDatas;
   }
 
-  public List<StockData> sma(List<StockData> stockDatas,int ma){
+  public List<? extends StockData> sma(List<? extends StockData> stockDatas,int ma){
     return sma(stockDatas,"close",ma);
   }
 
-
-  public List<StockData> sma(List<StockData> stockDatas,String column,int ma){
+  public List<? extends StockData> sma(List<? extends StockData> stockDatas,String column,int ma){
     double[] doubles = QuantUtils.toDoubleArray(stockDatas,column);
     double[] sma = sma(doubles, ma);
     QuantUtils.addDoubleArrayToList(sma,stockDatas,"close_ma" + ma);
@@ -138,9 +137,9 @@ public class Indicators {
     double[] closes = QuantUtils.toDoubleArray(stockDatas,"close");
     double[][] macd = macd(closes, optInFastPeriod, optInSlowPeriod, optInSignalPeriod);
     for(int i=0;i<stockDatas.size();i++){
-      stockDatas.get(i).put("dif",new BigDecimal(macd[0][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
-      stockDatas.get(i).put("dea",new BigDecimal(macd[1][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
-      stockDatas.get(i).put("macd",new BigDecimal(macd[2][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
+      stockDatas.get(i).attr("dif",new BigDecimal(macd[0][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
+      stockDatas.get(i).attr("dea",new BigDecimal(macd[1][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
+      stockDatas.get(i).attr("macd",new BigDecimal(macd[2][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
     }
     return stockDatas;
   }
@@ -205,9 +204,9 @@ public class Indicators {
     double[] closes = QuantUtils.toDoubleArray(stockDatas,"close");
     double[][] boll = boll(closes);
     for(int i=0;i<stockDatas.size();i++){
-      stockDatas.get(i).put("boll_upper",new BigDecimal(boll[0][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
-      stockDatas.get(i).put("boll_mid",new BigDecimal(boll[1][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
-      stockDatas.get(i).put("boll_lower",new BigDecimal(boll[2][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
+      stockDatas.get(i).attr("boll_upper",new BigDecimal(boll[0][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
+      stockDatas.get(i).attr("boll_mid",new BigDecimal(boll[1][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
+      stockDatas.get(i).attr("boll_lower",new BigDecimal(boll[2][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
     }
     return stockDatas;
   }
@@ -328,15 +327,15 @@ public class Indicators {
     double[] high = new double[stockDatas.size()];
     double[] low = new double[stockDatas.size()];
     for (int i = 0; i < stockDatas.size(); i++) {
-      closes[i] = stockDatas.get(i).get(StockConstants.CLOSE);
-      high[i] = stockDatas.get(i).get(StockConstants.HIGH);
-      low[i] = stockDatas.get(i).get(StockConstants.LOW);
+      closes[i] = stockDatas.get(i).attr(StockConstants.CLOSE);
+      high[i] = stockDatas.get(i).attr(StockConstants.HIGH);
+      low[i] = stockDatas.get(i).attr(StockConstants.LOW);
     }
     double[][] kdj = kdj(high, low, closes);
     for(int i=0;i<stockDatas.size();i++){
-      stockDatas.get(i).put("kdj_k",new BigDecimal(kdj[0][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
-      stockDatas.get(i).put("kdj_d",new BigDecimal(kdj[1][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
-      stockDatas.get(i).put("kdj_j",new BigDecimal(kdj[2][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
+      stockDatas.get(i).attr("kdj_k",new BigDecimal(kdj[0][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
+      stockDatas.get(i).attr("kdj_d",new BigDecimal(kdj[1][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
+      stockDatas.get(i).attr("kdj_j",new BigDecimal(kdj[2][i]).setScale(3,BigDecimal.ROUND_HALF_UP).doubleValue());
     }
     return stockDatas;
   }

@@ -1,6 +1,10 @@
 package com.tquant.gateway.tiger;
 
+import com.tigerbrokers.stock.openapi.client.https.domain.option.item.OptionRealTimeQuoteGroup;
+import com.tigerbrokers.stock.openapi.client.https.domain.option.model.OptionChainFilterModel;
+import com.tigerbrokers.stock.openapi.client.https.request.option.OptionChainQueryV3Request;
 import com.tquant.core.TigerQuantException;
+import com.tquant.core.model.request.OptionChainFilter;
 import com.tquant.gateway.api.OptionApi;
 import com.tigerbrokers.stock.openapi.client.https.client.TigerHttpClient;
 import com.tigerbrokers.stock.openapi.client.https.domain.option.item.OptionBriefItem;
@@ -61,15 +65,30 @@ public class TigerOptionApi implements OptionApi {
   }
 
   @Override
-  public List<OptionChainItem> getOptionChain(String symbol, String expiry) {
-    OptionChainModel model = new OptionChainModel();
-    model.setSymbol(symbol);
-    model.setExpiry(expiry);
-    OptionChainResponse response = client.execute(OptionChainQueryRequest.of(model));
+  public List<OptionRealTimeQuoteGroup> getOptionChain(String symbol, String expiry, OptionChainFilter filter) {
+    OptionChainModel basicModel = new OptionChainModel(symbol, expiry);
+    OptionChainFilterModel filterModel = null;
+    if (filter != null) {
+      filterModel = new OptionChainFilterModel().inTheMoney(filter.getInTheMoney())
+          .impliedVolatility(filter.getMinImpliedVolatility(), filter.getMaxImpliedVolatility())
+          .openInterest(filter.getMinOpenInterest(), filter.getMaxOpenInterest())
+          .greeks(new OptionChainFilterModel.Greeks()
+              .delta(filter.getMinDelta(), filter.getMaxDelta())
+              .gamma(filter.getMinGamma(), filter.getMaxGamma())
+              .vega(filter.getMinVega(), filter.getMaxVega())
+              .theta(filter.getMinTheta(), filter.getMaxTheta())
+              .rho(filter.getMinRho(), filter.getMaxRho()));
+    }
+
+    OptionChainResponse response = client.execute(OptionChainQueryV3Request.of(basicModel, filterModel));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get option chain error:" + response.getMessage());
     }
-    return response.getOptionChainItems();
+    List<OptionChainItem> optionChainItems = response.getOptionChainItems();
+    if (optionChainItems == null || optionChainItems.isEmpty()) {
+      throw new TigerQuantException("get option chain result empty");
+    }
+    return optionChainItems.get(0).getItems();
   }
 
   @Override

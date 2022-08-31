@@ -50,7 +50,7 @@ public class BestLimitAlgo extends AlgoTemplate {
     List<String> symbols = new ArrayList<>();
     symbols.add("AAPL");
     min2BarGenerator = new BarGenerator(symbols, 2, bar -> on2minBar(bar));
-    subscribe(getAlgoName(), symbol);
+    subscribe(symbol);
   }
 
   @Override

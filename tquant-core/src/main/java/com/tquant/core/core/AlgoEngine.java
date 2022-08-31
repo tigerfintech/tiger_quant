@@ -203,7 +203,7 @@ public class AlgoEngine extends Engine {
   }
 
   public String sendOrder(String algoTemplate, String symbol, Direction direction,
-      double price, int volume, OrderType orderType) {
+      Double price, int volume, OrderType orderType) {
     Contract contract = mainEngine.getContract(symbol);
     if (contract == null) {
       log("send order error，cannot find contract symbol:{}", symbol);
@@ -215,7 +215,7 @@ public class AlgoEngine extends Engine {
     if (direction == null) {
       throw new TigerQuantException("send order direction is null");
     }
-    if (price <= 0) {
+    if (price!=null && price <= 0) {
       throw new TigerQuantException("send order price is less than zero");
     }
     if (volume <= 0) {

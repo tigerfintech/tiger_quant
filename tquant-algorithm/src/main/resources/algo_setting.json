@@ -18,5 +18,11 @@
     "class":"com.tquant.algorithm.algos.SmaAlgo",
     "symbol": "AAPL",
     "bars": 300
+  },
+  "OptionCoveredCallAlgo": {
+    "enable": true,
+    "class": "com.tquant.algorithm.algos.OptionCoveredCallAlgo",
+    "symbol": "AAPL",
+    "expiryDate": "2022-09-02"
   }
 }

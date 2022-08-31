@@ -124,14 +124,14 @@ public abstract class AlgoTemplate {
     log("algo stop");
   }
 
-  public void subscribe(String template, String symbol) {
+  public void subscribe(String symbol) {
     if (mode == null) {
-      algoEngine.subscribe(template, symbol);
+      algoEngine.subscribe(getAlgoName(), symbol);
     }
   }
 
-  public void cancelSubscribe(String template, String symbol) {
-    algoEngine.cancelSubscribe(template, symbol);
+  public void cancelSubscribe(String symbol) {
+    algoEngine.cancelSubscribe(getAlgoName(), symbol);
   }
 
   public void sendOrder(String symbol, Direction direction, double price, int volume, boolean stop) {

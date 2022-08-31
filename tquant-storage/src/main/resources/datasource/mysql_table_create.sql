@@ -16,7 +16,7 @@ CREATE TABLE `bar` (
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8
 
 CREATE TABLE `contract` (
   `id` int NOT NULL AUTO_INCREMENT,
@@ -40,7 +40,7 @@ CREATE TABLE `contract` (
   UNIQUE KEY `uniq_idx_identifier` (`identifier`),
   KEY `idx_symbol` (`symbol`),
   KEY `idx_create_time` (`create_time`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8
 
 CREATE TABLE `tick` (
   `id` bigint NOT NULL AUTO_INCREMENT,
@@ -64,4 +64,4 @@ CREATE TABLE `tick` (
   `create_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_symbol_time` (`symbol`)
-) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=0 DEFAULT CHARSET=utf8

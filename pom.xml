@@ -21,7 +21,7 @@
 
   <properties>
     <io.github.tigerbrokers.openapi-java-sdk.version>1.4.5</io.github.tigerbrokers.openapi-java-sdk.version>
-    <junit.junit.version>4.12</junit.junit.version>
+    <junit.junit.version>4.13.1</junit.junit.version>
     <org.slf4j.slf4j-api.version>1.7.28</org.slf4j.slf4j-api.version>
     <org.ta4j.ta4j-core.version>0.14</org.ta4j.ta4j-core.version>
     <mysql.mysql-connector-java.version>8.0.28</mysql.mysql-connector-java.version>
@@ -29,7 +29,7 @@
     <org.projectlombok.lombok.version>1.18.4</org.projectlombok.lombok.version>
     <fastjson.version>1.2.83</fastjson.version>
     <commons-cli.version>1.5.0</commons-cli.version>
-    <logback.version>1.2.3</logback.version>
+    <logback.version>1.2.9</logback.version>
     <tablesaw.version>0.43.1</tablesaw.version>
     <guava.version>21.0</guava.version>
     <google.collect.version>0.4</google.collect.version>

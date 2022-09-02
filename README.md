@@ -18,6 +18,7 @@
 
 4. 执行`tquant-loader` 模块下的命令，可以下载历史数据，包括合约，K线，逐笔等数据。
 比如BarLoader来举例，项目导入Idea后，需要在Idea启动配置中设置参数：
+![bar_loader_example](https://user-images.githubusercontent.com/3766355/187683121-3740af44-6b20-41e6-b907-091de1e3856b.png)
 
 然后启动 BarLoader 下载K线数据，合约和逐笔数据的下载方法也是类似方式。
 

@@ -33,7 +33,7 @@ import com.tigerbrokers.stock.openapi.client.https.response.quote.QuoteSymbolRes
 import com.tigerbrokers.stock.openapi.client.util.builder.AccountParamBuilder;
 import com.tigerbrokers.stock.openapi.client.util.builder.TradeParamBuilder;
 
-import com.tquant.gateway.converter.ContractConverter;
+import com.tquant.gateway.converter.Converters;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -385,7 +385,7 @@ public class TigerTradeApi implements TradeApi {
         }
         List<ContractItem> items = response.getItems();
         if (items != null) {
-          contracts.addAll(ContractConverter.toContracts(items));
+          contracts.addAll(Converters.toContracts(items));
         }
         index += 50;
         try {
@@ -405,7 +405,7 @@ public class TigerTradeApi implements TradeApi {
       for (FutureExchangeItem item : exchangeResponse.getFutureExchangeItems()) {
         FutureBatchContractResponse contractResponse =
             client.execute(FutureContractByExchCodeRequest.newRequest(item.getCode()));
-        contracts.addAll(ContractConverter.toFuturesContracts(contractResponse.getFutureContractItems()));
+        contracts.addAll(Converters.toFuturesContracts(contractResponse.getFutureContractItems()));
       }
     }
 
@@ -435,7 +435,7 @@ public class TigerTradeApi implements TradeApi {
       throw new TigerQuantException("get contracts is null");
     }
     List<Contract> contracts = new ArrayList<>();
-    contracts.addAll(ContractConverter.toContracts(response.getItems()));
+    contracts.addAll(Converters.toContracts(response.getItems()));
     return contracts;
   }
 }

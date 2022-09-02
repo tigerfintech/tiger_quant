@@ -1,6 +1,15 @@
 package com.tquant.gateway.tiger;
 
+import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.KlineItem;
+import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.KlinePoint;
+import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.TickPoint;
+import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.TradeTickItem;
 import com.tquant.core.TigerQuantException;
+import com.tquant.core.model.data.MarketStatus;
+import com.tquant.core.model.data.RealtimeQuote;
+import com.tquant.core.model.data.SymbolName;
+import com.tquant.core.model.data.TimelineQuote;
+import com.tquant.core.model.data.TradeCalendar;
 import com.tquant.gateway.api.QuoteApi;
 import com.tquant.core.model.data.Bar;
 import com.tquant.core.model.data.Tick;
@@ -13,7 +22,6 @@ import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.Financi
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.FinancialReportItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.future.item.FutureKlineBatchItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.future.item.FutureKlineItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.*;
 import com.tigerbrokers.stock.openapi.client.https.request.TigerHttpRequest;
 import com.tigerbrokers.stock.openapi.client.https.request.financial.CorporateDividendRequest;
 import com.tigerbrokers.stock.openapi.client.https.request.financial.CorporateSplitRequest;
@@ -34,7 +42,7 @@ import com.tigerbrokers.stock.openapi.client.struct.enums.RightOption;
 import com.tigerbrokers.stock.openapi.client.struct.enums.TimeLineType;
 import com.tigerbrokers.stock.openapi.client.util.builder.AccountParamBuilder;
 
-import com.tquant.gateway.converter.BarConverter;
+import com.tquant.gateway.converter.Converters;
 import java.sql.Date;
 import java.sql.Timestamp;
 import java.time.Instant;
@@ -78,12 +86,19 @@ public class TigerQuoteApi implements QuoteApi {
   }
 
   @Override
-  public List<MarketItem> getMarketState(Market market) {
+  public List<MarketStatus> getMarketState(Market market) {
     QuoteMarketResponse response = client.execute(QuoteMarketRequest.newRequest(market));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get market state error:" + response.getMessage());
     }
-    return response.getMarketItems();
+    return Converters.toMarketStatuses(response.getMarketItems());
+  }
+
+  @Override
+  public List<TradeCalendar> getTradingCalendar(Market market, String beginDate, String endDate) {
+    QuoteTradeCalendarResponse tradeCalendarResponse =
+        client.execute(QuoteTradeCalendarRequest.newRequest(Market.US, beginDate, endDate));
+    return Converters.toTradeCalendars(tradeCalendarResponse.getItems());
   }
 
   @Override
@@ -96,12 +111,12 @@ public class TigerQuoteApi implements QuoteApi {
   }
 
   @Override
-  public List<SymbolNameItem> getSymbolNames(Market market) {
+  public List<SymbolName> getSymbolNames(Market market) {
     QuoteSymbolNameResponse response = client.execute(QuoteSymbolNameRequest.newRequest(market));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get symbol names error:" + response.getMessage());
     }
-    return response.getSymbolNameItems();
+    return Converters.toSymbolNames(response.getSymbolNameItems());
   }
 
   @Override
@@ -112,7 +127,7 @@ public class TigerQuoteApi implements QuoteApi {
     }
     QuoteKlineResponse response =
         client.execute(
-            QuoteKlineRequest.newRequest(symbols, BarConverter.toKType(barType)).withLimit(limit).withRight(rightOption));
+            QuoteKlineRequest.newRequest(symbols, Converters.toKType(barType)).withLimit(limit).withRight(rightOption));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get bars error:" + response.getMessage());
     }
@@ -124,7 +139,7 @@ public class TigerQuoteApi implements QuoteApi {
         if (klinePoints == null || klinePoints.isEmpty()) {
           continue;
         }
-        result.put(item.getSymbol(), BarConverter.toBars(item.getSymbol(), barType, klinePoints));
+        result.put(item.getSymbol(), Converters.toBars(item.getSymbol(), barType, klinePoints));
       }
     }
     return result;
@@ -141,7 +156,7 @@ public class TigerQuoteApi implements QuoteApi {
     System.out.println(startTime+","+endTime);
     QuoteKlineResponse response =
         client.execute(
-            QuoteKlineRequest.newRequest(symbols, BarConverter.toKType(barType),startTime,endTime).withLimit(1000).withRight(rightOption));
+            QuoteKlineRequest.newRequest(symbols, Converters.toKType(barType),startTime,endTime).withLimit(1000).withRight(rightOption));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get bars error:" + response.getMessage());
     }
@@ -153,7 +168,7 @@ public class TigerQuoteApi implements QuoteApi {
         if (klinePoints == null || klinePoints.isEmpty()) {
           continue;
         }
-        result.put(item.getSymbol(), BarConverter.toBars(item.getSymbol(), barType, klinePoints));
+        result.put(item.getSymbol(), Converters.toBars(item.getSymbol(), barType, klinePoints));
       }
     }
     return result;
@@ -165,7 +180,7 @@ public class TigerQuoteApi implements QuoteApi {
       throw new TigerQuantException("futures bar type [" + barType + "] not support");
     }
     FutureKlineResponse response =
-        client.execute(FutureKlineRequest.newRequest(symbols, BarConverter.toFutureKType(barType), limit));
+        client.execute(FutureKlineRequest.newRequest(symbols, Converters.toFutureKType(barType), limit));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get futures bars error:" + response.getMessage());
     }
@@ -177,7 +192,7 @@ public class TigerQuoteApi implements QuoteApi {
         if (klinePoints == null || klinePoints.isEmpty()) {
           continue;
         }
-        List<Bar> bars = BarConverter.toFuturesBars(item.getContractCode(), barType, klinePoints);
+        List<Bar> bars = Converters.toFuturesBars(item.getContractCode(), barType, klinePoints);
         Collections.reverse(bars);
         result.put(item.getContractCode(), bars);
       }
@@ -186,12 +201,14 @@ public class TigerQuoteApi implements QuoteApi {
   }
 
   @Override
-  public Map<String, List<RealTimeQuoteItem>> getRealTimeQuotes(List<String> symbols) {
+  public Map<String, List<RealtimeQuote>> getRealTimeQuotes(List<String> symbols) {
     QuoteRealTimeQuoteResponse response = client.execute(QuoteRealTimeQuoteRequest.newRequest(symbols));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get real-time quotes error:" + response.getMessage());
     }
-    return response.getRealTimeQuoteItems().stream().collect(Collectors.groupingBy(RealTimeQuoteItem::getSymbol));
+    return Converters.toRealtimeQuotes(response.getRealTimeQuoteItems())
+        .stream()
+        .collect(Collectors.groupingBy(RealtimeQuote::getSymbol));
   }
 
   @Override
@@ -220,13 +237,13 @@ public class TigerQuoteApi implements QuoteApi {
   }
 
   @Override
-  public Map<String, List<TimelineItem>> getTimeShareQuotes(List<String> symbols, Long beginTime) {
+  public Map<String, List<TimelineQuote>> getTimeShareQuotes(List<String> symbols, Long beginTime) {
     QuoteTimelineResponse response =
         client.execute(QuoteTimelineRequest.newRequest(symbols, beginTime, true, TimeLineType.day));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get time-share quotes error:" + response.getMessage());
     }
-    return response.getTimelineItems().stream().collect(Collectors.groupingBy(TimelineItem::getSymbol));
+    return Converters.toTimelineQuotes(response.getTimelineItems()).stream().collect(Collectors.groupingBy(TimelineQuote::getSymbol));
   }
 
   @Override

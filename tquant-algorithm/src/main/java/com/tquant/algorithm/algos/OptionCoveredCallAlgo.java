@@ -77,10 +77,6 @@ public class OptionCoveredCallAlgo extends AlgoTemplate {
       log("match option covered call close position tick: {}", tick);
       sell(symbol, null, 100, OrderType.MKT);
       buy(optionSymbol, null, 1, OrderType.MKT);
-
-      //取消行情订阅
-      cancelSubscribe(symbol);
-      cancelSubscribe(optionSymbol);
     }
   }
 
@@ -92,5 +88,12 @@ public class OptionCoveredCallAlgo extends AlgoTemplate {
   @Override
   public void onTrade(Trade trade) {
 
+  }
+
+  @Override
+  public void onStop() {
+    //取消行情订阅
+    cancelSubscribe(symbol);
+    cancelSubscribe(optionSymbol);
   }
 }

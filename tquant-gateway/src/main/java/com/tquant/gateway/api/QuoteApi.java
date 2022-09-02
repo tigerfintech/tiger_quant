@@ -1,16 +1,17 @@
 package com.tquant.gateway.api;
 
 import com.tquant.core.model.data.Bar;
+import com.tquant.core.model.data.MarketStatus;
+import com.tquant.core.model.data.RealtimeQuote;
+import com.tquant.core.model.data.SymbolName;
 import com.tquant.core.model.data.Tick;
+import com.tquant.core.model.data.TimelineQuote;
+import com.tquant.core.model.data.TradeCalendar;
 import com.tquant.core.model.enums.BarType;
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.CorporateDividendItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.CorporateSplitItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.FinancialDailyItem;
 import com.tigerbrokers.stock.openapi.client.https.domain.financial.item.FinancialReportItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.MarketItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.RealTimeQuoteItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.SymbolNameItem;
-import com.tigerbrokers.stock.openapi.client.https.domain.quote.item.TimelineItem;
 import com.tigerbrokers.stock.openapi.client.struct.enums.FinancialPeriodType;
 import com.tigerbrokers.stock.openapi.client.struct.enums.Market;
 import com.tigerbrokers.stock.openapi.client.struct.enums.RightOption;
@@ -28,11 +29,13 @@ public interface QuoteApi {
 
   String grabQuotePermission();
 
-  List<MarketItem> getMarketState(Market market);
+  List<MarketStatus> getMarketState(Market market);
+
+  List<TradeCalendar> getTradingCalendar(Market market, String beginDate, String endDate);
 
   List<String> getSymbols(Market market);
 
-  List<SymbolNameItem> getSymbolNames(Market market);
+  List<SymbolName> getSymbolNames(Market market);
 
   Map<String, List<Bar>> getBars(List<String> symbols, BarType barType, RightOption rightOption, int limit);
 
@@ -41,11 +44,11 @@ public interface QuoteApi {
 
   Map<String, List<Bar>> getFuturesBars(List<String> symbols, BarType barType, int limit);
 
-  Map<String, List<RealTimeQuoteItem>> getRealTimeQuotes(List<String> symbols);
+  Map<String, List<RealtimeQuote>> getRealTimeQuotes(List<String> symbols);
 
   Map<String, List<Tick>> getTradeTicks(List<String> symbols);
 
-  Map<String, List<TimelineItem>> getTimeShareQuotes(List<String> symbols, Long beginTime);
+  Map<String, List<TimelineQuote>> getTimeShareQuotes(List<String> symbols, Long beginTime);
 
   Map<String, List<FinancialDailyItem>> getFinancialDaily(List<String> symbols, List<String> fields,
       LocalDate beginDate,

@@ -489,7 +489,7 @@ public class PortfolioManager {
    */
   public int getMaximumNewContractsFor(Contract contract, Asset accountSummary) {
 
-    double totalBuyingPower = accountSummary.getBuyingPower();
+    double totalBuyingPower = getBuyingPower(accountSummary.getBuyingPower());
     double maxBuyingPower = (config.getTarget().getMaximumNewContractsPercent() * totalBuyingPower);
 
     Tick ticker = getTickerForStock(contract);
@@ -616,14 +616,18 @@ public class PortfolioManager {
     log.info("Order submitted {}", order);
   }
 
+  public double getBuyingPower(double buyingPower) {
+    return (int) Math.floor(buyingPower * config.getAccount().getMarginUsage());
+  }
+
   public void checkIfCanWritePuts(Asset accountSummary, Map<String, List<Position>> portfolioPositions) {
     List<Position> stockPositions = portfolioPositions.values().stream()
         .flatMap(Collection::stream)
         .filter(Position::isStock)
         .collect(Collectors.toList());
 
-    double totalBuyingPower = accountSummary.getBuyingPower();
-    log.info("Total buying power: $ {} at {} % margin usage", (int) totalBuyingPower,(int) (config.getMarginUsage() * 100));
+    double totalBuyingPower = getBuyingPower(accountSummary.getBuyingPower());
+    log.info("Total buying power: $ {} at {} % margin usage", (int) totalBuyingPower,(int) (config.getAccount().getMarginUsage() * 100));
 
     Map<String, Position> stockSymbols =
         stockPositions.stream().collect(Collectors.toMap(Position::getSymbol, Function.identity()));

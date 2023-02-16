@@ -18,7 +18,6 @@ public class RollingSellPutConfig {
   private boolean enable;
   private Account account;
   private boolean cancelOrders;
-  private double marginUsage;
   private int marketDataType;
   private Orders orders;
   private OptionChains optionChains;

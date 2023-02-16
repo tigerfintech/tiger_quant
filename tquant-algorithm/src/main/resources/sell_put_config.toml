@@ -1,0 +1,272 @@
+# NOTE: It is STRONGLY recommended you read through all notes, config options,
+# and documentation before proceeding. Be sure to update the configuration
+# values according to your preferences. Additionally, any default values in
+# this config do not constitute a recommendation or endorsement, or any provide
+# claims abount returns or performance.
+#
+# Should you decide to use ThetaGang, please experiment with a paper trading
+# account before trying on a live account.
+
+[account]
+# The account number to operate on
+number = "DU1234567"
+
+# Cancel any existing orders for the symbols configured at startup
+cancel_orders = true
+
+# Maximum amount of margin to use, as a ratio of net liquidation. IB lets
+# you use varying amounts of margin, depending on the assets. To use up to 4x
+# margin, set this to 4. It's recommended you always leave some additional
+# cushion. IB will start to close positions if you go below certain thresholds
+# of available margin in your account.
+#
+# For details on margin usage, see:
+#   https://www.interactivebrokers.com/en/index.php?f=24176
+#
+# The default value uses 50% of your available net liquidation value
+# (i.e., half of your funds). Set this to 1.0 to use all your funds,
+# or 1.5 to use 150% (which may incur margin interest charges).
+#
+# In other words, ThetaGang's buying power is calculated by taking your NLV and
+# multiplying it by margin_usage.
+margin_usage = 0.5
+
+# Market data type (see
+# https://interactivebrokers.github.io/tws-api/market_data_type.html)
+market_data_type = 1
+
+[orders]
+# The exchange to route orders to. Can be overridden if desired. This is also
+# used for fetching tickers/prices.
+exchange = "SMART"
+
+[orders.algo]
+# By default we use adaptive orders with patient priority which gives reasonable
+# results. You can also experiment with TWAP or other options, however the
+# available order algos vary depending on what you trade.
+#
+# Note that the algo orders don't seem to work with combo orders, which are used
+# when rolling positions, so AFAIK this has no effect for those orders. It only
+# seems to take effect with regular open/close orders.
+
+# Optional IBKR algo strategy. See
+# https://interactivebrokers.github.io/tws-api/ibalgos.html for option details.
+strategy = "Adaptive"
+# For `algoParams`, the TagValue parameter has 2 values, so any values with
+# anything other than 2 parameters are invalid. Pass an empty list to use the
+# defaults (i.e., params = []).
+params = [["adaptivePriority", "Patient"]]
+
+[option_chains]
+# The option chains are lazy loaded, and before you can determine the greeks
+# (delta) or prices, you need to scan the chains. The settings here tell
+# thetagang how many contracts to load. Don't make these values too high, as
+# they will cause the chain scanning process to take too long, and it may fail.
+#
+# If you have issues where thetagang can't find suitable contracts, try
+# increasing these values slightly.
+#
+# Number of expirations to load from option chains
+expirations = 4
+# Number of strikes to load from option chains
+strikes = 15
+
+[roll_when]
+# Roll when P&L reaches 90%
+pnl = 0.9
+
+# Or, roll options when there are <= 15 days to expiry and P&L is at least
+# min_pnl (min_pnl defaults to 0)
+#
+# NOTE: For cases where an option ends up deep ITM, notably when selling
+# covered calls, it's possible that the P&L would be significantly negative,
+# i.e., -100%. If you want to roll anyway in these situations, set min_pnl to a
+# negative value such as -1 (for -100%).
+dte = 15
+min_pnl = 0.2
+
+# Optional: Don't roll contracts when the current DTE is greater than this
+# number of days. This helps avoid cases where you end up rolling out to LEAPs.
+max_dte = 60
+
+# Optional: Create a closing order when the P&L reaches this threshold. This
+# overrides the other parameters, i.e., it ignores DTE and everything else.
+# If not specified, it has no effect. This can handle the case where you have
+# long-dated options that have slowly become worthless and you just want to get
+# them out of your portfolio.
+# close_at_pnl = 0.99
+
+[roll_when.calls]
+# Roll calls to the next expiration even if they're in the money. Defaults to
+# true if not specified.
+itm = true
+
+# Only roll when there's a suitable contract available that will result in a
+# credit.
+credit_only = false
+
+[roll_when.puts]
+# Roll puts if they're in the money. Defaults to false if not specified.
+itm = false
+
+# Only roll when there's a suitable contract available that will result in a
+# credit.
+credit_only = false
+
+[write_when.calls]
+# Optionally, only write calls when the underlying is green
+green = true
+
+# With covered calls, we can cap the number of calls to write by this factor. At
+# 1.0, we write covered calls on 100% of our positions. At 0.5, we'd only write
+# on 50% of our positions. This value must be between 1 and 0 inclusive.
+cap_factor = 1.0
+
+[write_when.puts]
+# Optionally, only write puts when the underlying is red
+red = true
+
+[target]
+# Target 45 or more days to expiry
+dte = 45
+
+# Target delta of 0.3 or less. Defaults to 0.3 if not specified.
+delta = 0.3
+
+# When writing new contracts (either covered calls or naked puts), or rolling
+# before `roll_when.dte` is reached, never write more than this amount of
+# contracts at once. This can be useful to avoid bunching by spreading contract
+# placement out over time (and possibly expirations) in order to protect
+# yourself from large swings. This value does not affect rolling existing
+# contracts to the next expiration. This value is expressed as a percentage of
+# buying power based on the market price of the underlying ticker, as a range
+# from [0.0-1.0].
+#
+# Once the `roll_when.dte` date is reached, all the remaining positions are
+# rolled regardless of the current position quantity.
+#
+# Defaults to 5% of buying power. Set this to 1.0 to effectively disable the
+# limit.
+maximum_new_contracts_percent = 0.05
+
+# Minimum amount of open interest for a contract to qualify
+minimum_open_interest = 10
+
+# Optional: specify delta separately for puts/calls. Takes precedent over
+# target.delta.
+#
+#  [target.puts]
+#  delta = 0.5
+#  [target.calls]
+#  delta = 0.3
+
+[symbols]
+
+# NOTE: Please change these symbols and weights according to your preferences.
+# These are provided only as an example for the purpose of configuration. These
+# values were chosen as sane values should someone decide to run this code
+# without changes, however it is in no way a recommendation or endorsement.
+#
+# You can specify the weight either as a percentage of your buying power (which
+# is calculated as your NLV * account.margin_usage), or in terms of parts. Parts
+# are summed from all symbols, then the weight is calculated by dividing the
+# parts by the total parts.
+#
+# You should try to choose ETFs or stocks that:
+#
+#  1) Have sufficient trading volume for the underlying
+#  2) Have standard options contracts (100 shares per contract)
+#  3) Have options with sufficient open interest and trading volume
+#
+# The target delta may also be specified per-symbol, and takes precedence over
+# `target.delta` or `target.puts/calls.delta`. You can specify a value for the
+# symbol, or override individually for puts/calls.
+[symbols.SPY]
+weight = 0.4
+# OR: specify in terms of parts. Must use either weight or parts, but cannot mix
+# both.
+# parts = 40
+
+[symbols.QQQ]
+weight = 0.3
+# parts = 30
+
+[symbols.QQQ.puts]
+# Override delta just for QQQ puts
+delta = 0.5
+
+# Also, optionally specify a strike limit, for either puts or calls.
+# Interpreted as an upper bound for puts, and a lower bound for calls.
+strike_limit = 1000.0 # never write a put with a strike above $1000
+
+[symbols.QQQ.calls]
+strike_limit = 100.0 # never write a call with a strike below $100
+
+[symbols.TLT]
+weight = 0.2
+# parts = 20
+# Override delta for this particular symbol, for both puts and calls.
+delta = 0.4
+
+[symbols.ABNB]
+# For symbols that require an exchange, which is typically any company stock,
+# you must specify the primary exchange.
+primary_exchange = "NASDAQ"
+weight = 0.05
+# parts = 5
+
+# Sometimes you may need to wrap the symbol in quotes.
+[symbols."BRK B"]
+# For symbols that require an exchange, which is typically any company stock,
+# you must specify the primary exchange.
+primary_exchange = "NYSE"
+weight = 0.05
+# parts = 5
+
+[ib_insync]
+logfile = '/etc/thetagang/ib_insync.log'
+
+[ibc]
+# IBC configuration parameters. See
+# https://ib-insync.readthedocs.io/api.html#ibc for details.
+gateway = true
+ibcPath = '/opt/ibc'
+tradingMode = 'paper'
+
+# Set this to true if you want to raise an exception on request errors. Under
+# normal operation this should be false because we often try to make "invalid"
+# requests when scanning option chains for example.
+RaiseRequestErrors = false
+
+password = 'demo'
+userid = 'demo'
+
+# Change this to point to your config.ini for IBC
+ibcIni = '/etc/thetagang/config.ini'
+
+# Change or unset this to use something other than the Docker bundled OpenJDK.
+javaPath = '/opt/java/openjdk/bin'
+
+# twsPath         = ''
+# twsSettingsPath = ''
+# fixuserid       = ''
+# fixpassword     = ''
+
+[watchdog]
+# Watchdog configuration params. See
+# https://ib-insync.readthedocs.io/api.html#watchdog for details.
+appStartupTime = 30
+appTimeout = 20
+clientId = 1
+connectTimeout = 2
+host = '127.0.0.1'
+port = 7497
+probeTimeout = 4
+readonly = false
+retryDelay = 2
+
+[watchdog.probeContract]
+currency = 'USD'
+exchange = 'SMART'
+secType = 'STK'
+symbol = 'SPY'

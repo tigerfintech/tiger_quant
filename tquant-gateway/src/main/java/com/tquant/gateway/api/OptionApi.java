@@ -19,7 +19,7 @@ import java.util.Map;
  */
 public interface OptionApi {
 
-  Map<String, List<OptionExpirationItem>> getOptionExpiration(List<String> symbols);
+  OptionExpirationItem getOptionExpiration(String symbol) ;
 
   List<OptionBriefItem> getOptionBrief(String symbol, Right right, String strike, String expiry);
 

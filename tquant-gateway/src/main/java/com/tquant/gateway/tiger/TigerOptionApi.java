@@ -1,5 +1,6 @@
 package com.tquant.gateway.tiger;
 
+import com.google.common.collect.Lists;
 import com.tigerbrokers.stock.openapi.client.https.domain.option.item.OptionRealTimeQuoteGroup;
 import com.tigerbrokers.stock.openapi.client.https.domain.option.model.OptionChainFilterModel;
 import com.tigerbrokers.stock.openapi.client.https.request.option.OptionChainQueryV3Request;
@@ -46,12 +47,12 @@ public class TigerOptionApi implements OptionApi {
   }
 
   @Override
-  public Map<String, List<OptionExpirationItem>> getOptionExpiration(List<String> symbols) {
-    OptionExpirationResponse response = client.execute(OptionExpirationQueryRequest.of(symbols));
+  public OptionExpirationItem getOptionExpiration(String symbol) {
+    OptionExpirationResponse response = client.execute(OptionExpirationQueryRequest.of(Lists.newArrayList(symbol)));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get option expiration error:" + response.getMessage());
     }
-    return response.getOptionExpirationItems().stream().collect(Collectors.groupingBy(OptionExpirationItem::getSymbol));
+    return response.getOptionExpirationItems().get(0);
   }
 
   @Override

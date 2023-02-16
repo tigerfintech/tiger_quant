@@ -3,8 +3,10 @@ package com.tquant.core.model.data;
 import com.alibaba.fastjson.JSONObject;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.TimeZone;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Description:
@@ -13,8 +15,10 @@ import lombok.Data;
  * @date 2019/08/16
  */
 @Data
+@NoArgsConstructor
 public class Tick extends StockData implements BaseData {
 
+  private Contract contract;
   private String identifier;
   private String symbol;
   private String name;
@@ -25,6 +29,7 @@ public class Tick extends StockData implements BaseData {
   private double latestVolume;
   private LocalDateTime latestTime;
   private long time;
+  private Integer openInterest;
 
   private double open;
   private double high;
@@ -36,6 +41,53 @@ public class Tick extends StockData implements BaseData {
   private int bidSize;
   private double askPrice;
   private int askSize;
+  private double midpoint;
+
+  public Tick(RealtimeQuote realtimeQuote,Contract contract) {
+    this.symbol = realtimeQuote.getSymbol();
+    if (this.contract == null) {
+      this.contract = contract;
+    }
+    if (realtimeQuote.getOpen() != null) {
+      this.open = realtimeQuote.getOpen();
+    }
+    if (realtimeQuote.getHigh() != null) {
+      this.high = realtimeQuote.getHigh();
+    }
+    if (realtimeQuote.getLow() != null) {
+      this.low = realtimeQuote.getLow();
+    }
+    if (realtimeQuote.getClose() != null) {
+      this.close = realtimeQuote.getClose();
+    }
+    if (realtimeQuote.getPreClose() != null) {
+      this.preClose = realtimeQuote.getPreClose();
+    }
+    if (realtimeQuote.getLatestPrice() != null) {
+      this.latestPrice = realtimeQuote.getLatestPrice();
+    }
+    if (realtimeQuote.getLatestTime() != null) {
+      this.latestTime = Instant.ofEpochMilli(realtimeQuote.getLatestTime()).atZone(ZoneId.systemDefault()).toLocalDateTime();
+    }
+    if (realtimeQuote.getAskPrice() != null) {
+      this.askPrice = realtimeQuote.getAskPrice();
+    }
+    if (realtimeQuote.getAskSize() != null) {
+      this.askSize = realtimeQuote.getAskSize().intValue();
+    }
+    if (realtimeQuote.getBidPrice() != null) {
+      this.bidPrice = realtimeQuote.getBidPrice();
+    }
+    if (realtimeQuote.getBidSize() != null) {
+      this.bidSize = realtimeQuote.getBidSize().intValue();
+    }
+    if (realtimeQuote.getVolume() != null) {
+      this.volume = realtimeQuote.getVolume();
+    }
+    if (realtimeQuote.getOpenInterest() != null) {
+      this.openInterest = realtimeQuote.getOpenInterest();
+    }
+  }
 
   public void updateTick(Tick tick) {
     if (tick.getVolume() > 0) {
@@ -80,6 +132,10 @@ public class Tick extends StockData implements BaseData {
     if (tick.getAmount() > 0) {
       this.amount = tick.getAmount();
     }
+
+    if (tick.getAskPrice() > 0 && tick.getBidPrice() > 0) {
+      this.midpoint = (tick.getAskPrice() + tick.getBidPrice()) / 2;
+    }
   }
 
   public void jsonToTick(JSONObject jsonObject) {
@@ -109,6 +165,9 @@ public class Tick extends StockData implements BaseData {
     this.askSize = jsonObject.getIntValue("askSize");
     this.bidPrice = jsonObject.getDoubleValue("bidPrice");
     this.bidSize = jsonObject.getIntValue("bidSize");
+    if (this.askPrice > 0 && this.bidPrice > 0) {
+      this.midpoint = (this.askPrice + this.bidPrice) / 2;
+    }
 
     String hourTradingTag = jsonObject.getString("hourTradingTag");
     if (hourTradingTag != null && hourTradingTag.equals("盘前")) {

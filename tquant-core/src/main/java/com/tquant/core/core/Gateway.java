@@ -88,7 +88,7 @@ public abstract class Gateway {
 
   public abstract void cancelSubscribe(SubscribeRequest request);
 
-  public abstract String sendOrder(OrderRequest request);
+  public abstract long sendOrder(OrderRequest request);
 
   public abstract void cancelOrder(ModifyRequest request);
 

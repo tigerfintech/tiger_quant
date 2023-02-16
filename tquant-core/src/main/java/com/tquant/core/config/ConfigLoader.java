@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.tquant.core.TigerQuantException;
 import com.tquant.core.model.Config;
 import java.io.BufferedInputStream;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.Map;
 
@@ -24,9 +25,7 @@ public class ConfigLoader {
    * @param <T> config generic class
    */
   public static <T extends Config> T loadConfig(String fileName, Class clazz) {
-    try (BufferedInputStream inputStream =
-             new BufferedInputStream(
-                 Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName))) {
+    try (FileInputStream inputStream = new FileInputStream(fileName)) {
       return JSON.parseObject(inputStream, clazz);
     } catch (IOException e) {
       throw new TigerQuantException("parse config exception:" + e.getMessage());
@@ -56,9 +55,7 @@ public class ConfigLoader {
    * @param fileName algorithm config fileName
    */
   public static Map<String, Map<String, Object>> loadConfigs(String fileName) {
-    try (BufferedInputStream inputStream =
-             new BufferedInputStream(
-                 Thread.currentThread().getContextClassLoader().getResourceAsStream(fileName))) {
+    try (FileInputStream inputStream = new FileInputStream(fileName)) {
       return JSON.parseObject(inputStream, Map.class);
     } catch (IOException e) {
       throw new TigerQuantException("parse config exception:" + e.getMessage());

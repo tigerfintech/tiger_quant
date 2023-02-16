@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.slf4j.Logger;
 import org.slf4j.helpers.FormattingTuple;
 import org.slf4j.helpers.MessageFormatter;
 
@@ -39,6 +40,7 @@ public class MainEngine {
   private Map<String, Gateway> gateways = new HashMap<>();
   private Map<String, Engine> engines = new HashMap<>();
   private EventEngine eventEngine;
+  private LogEngine logEngine;
 
   public MainEngine(EventEngine eventEngine) {
     this.todayDate = LocalDate.now().format(DateTimeFormatter.ofPattern("yyyyMMdd"));
@@ -49,9 +51,14 @@ public class MainEngine {
   }
 
   private void initEngines() {
-    addEngine(new LogEngine(this, eventEngine));
+    logEngine = new LogEngine(this, eventEngine);
+    addEngine(logEngine);
     addEngine(new OrderEngine(this, eventEngine));
     addEngine(new AlgoEngine(this, eventEngine));
+  }
+
+  public Logger getLogger() {
+    return logEngine.getLogger();
   }
 
   public Engine addEngine(Engine engine) {
@@ -102,7 +109,7 @@ public class MainEngine {
     gateway.cancelSubscribe(request);
   }
 
-  public String sendOrder(String gatewayName, OrderRequest request) {
+  public long sendOrder(String gatewayName, OrderRequest request) {
     Gateway gateway = getGateway(gatewayName);
     if (gateway == null) {
       throw new TigerQuantException("gateway " + gatewayName + " not found");

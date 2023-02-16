@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static com.tquant.core.util.QuantUtils.ALGO_CONFIG_PATH_PROP;
+
 /**
  * Description:
  *
@@ -36,13 +38,12 @@ import java.util.Set;
 public class AlgoEngine extends Engine {
 
   public static final String ENGINE_NAME = "AlgoEngine";
-  private static final String ALGO_SETTING_FILE = "algo_setting.json";
   private static final String DEFAULT_GATEWAY = "TigerGateway";
 
   private Map<String, Map<String, Object>> algoSettings;
   private Map<String, AlgoTemplate> algos = new HashMap<>();
   private Map<String, List<String>> symbolAlgoTemplateMap = new HashMap<>();
-  private Map<String, String> orderIdAlgoTemplateMap = new HashMap<>();
+  private Map<Long, String> orderIdAlgoTemplateMap = new HashMap<>();
 
   public AlgoEngine(MainEngine mainEngine, EventEngine eventEngine) {
     this(ENGINE_NAME, mainEngine, eventEngine);
@@ -60,7 +61,11 @@ public class AlgoEngine extends Engine {
   }
 
   private void loadSetting() {
-    algoSettings = ConfigLoader.loadConfigs(ALGO_SETTING_FILE);
+    String algoConfigPath = System.getProperty(ALGO_CONFIG_PATH_PROP);
+    if (algoConfigPath == null) {
+      throw new TigerQuantException("algo strategy config path cannot be empty");
+    }
+    algoSettings = ConfigLoader.loadConfigs(algoConfigPath);
   }
 
   private void registerEvent() {
@@ -202,12 +207,12 @@ public class AlgoEngine extends Engine {
     mainEngine.cancelSubscribe(DEFAULT_GATEWAY, request);
   }
 
-  public String sendOrder(String algoTemplate, String symbol, Direction direction,
+  public long sendOrder(String algoTemplate, String symbol, Direction direction,
       Double price, int volume, OrderType orderType) {
     Contract contract = mainEngine.getContract(symbol);
     if (contract == null) {
       log("send order error，cannot find contract symbol:{}", symbol);
-      return "";
+      return -1L;
     }
     if (symbol == null) {
       throw new TigerQuantException("send order symbol is null");
@@ -241,7 +246,7 @@ public class AlgoEngine extends Engine {
     OrderRequest request =
         new OrderRequest(symbol, contract.getExchange(), direction.name(), orderType.name(), volume, price);
 
-    String orderId = mainEngine.sendOrder(DEFAULT_GATEWAY, request);
+    long orderId = mainEngine.sendOrder(DEFAULT_GATEWAY, request);
     orderIdAlgoTemplateMap.put(orderId, algoTemplate);
     return orderId;
   }

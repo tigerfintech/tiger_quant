@@ -79,15 +79,15 @@ public class TigerSubscribeApi implements ApiComposeCallback {
     @Override
     public void positionChange(JSONObject jsonObject) {
         Position position = jsonObject.toJavaObject(Position.class);
-        gateway.log("positionChange {}",jsonObject.toJSONString());
-        gateway.onPosition(position);
+        //gateway.log("positionChange {}",jsonObject.toJSONString());
+        //gateway.onPosition(position);
     }
 
     @Override
     public void assetChange(JSONObject jsonObject) {
         Asset asset = jsonObject.toJavaObject(Asset.class);
-        gateway.log("assetChange {}",jsonObject.toJSONString());
-        gateway.onAsset(asset);
+        //gateway.log("assetChange {}",jsonObject.toJSONString());
+        //gateway.onAsset(asset);
     }
 
     @Override

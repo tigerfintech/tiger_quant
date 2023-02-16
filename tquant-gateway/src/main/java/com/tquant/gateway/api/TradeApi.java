@@ -15,17 +15,21 @@ import java.util.Map;
  */
 public interface TradeApi {
 
+  void setMock(boolean isMock);
+
   int getOrderId();
 
-  String placeLimitOrder(Contract contract, String direction, Double price, int quantity);
+  long placeLimitOrder(Contract contract, String direction, Double price, int quantity);
 
-  String placeMarketOrder(Contract contract, String direction, int quantity);
+  long placeMarketOrder(Contract contract, String direction, int quantity);
 
   String cancelOrder(long id);
 
   String modifyOrder(long id, Double limitPrice, int quantity);
 
   Order getOrder(long id);
+
+  List<Order> getOpenOrders();
 
   List<Order> getOpenOrders(String secType);
 
@@ -36,6 +40,8 @@ public interface TradeApi {
   List<Order> getOrders(String secType);
 
   List<String> getAccounts();
+
+  Asset getAsset();
 
   Asset getAsset(String secType);
 

@@ -3,6 +3,8 @@ package com.tquant.gateway.tiger;
 import com.tquant.core.TigerQuantException;
 import com.tquant.core.config.*;
 
+import static com.tquant.core.util.QuantUtils.TIGER_CONFIG_PATH_PROP;
+
 /**
  * Description:
  *
@@ -10,10 +12,13 @@ import com.tquant.core.config.*;
  * @date 2022/08/05
  */
 public class TigerConfigLoader {
-  private static final String TIGER_CONFIG_FILE = "tiger_gateway_setting.json";
 
   public static TigerConfig loadTigerConfig() {
-    TigerConfig config = ConfigLoader.loadConfig(TIGER_CONFIG_FILE, TigerConfig.class);
+    String gatewayConfigPath = System.getProperty(TIGER_CONFIG_PATH_PROP);
+    if (gatewayConfigPath == null) {
+      throw new TigerQuantException("tiger gateway config path cannot be empty");
+    }
+    TigerConfig config = ConfigLoader.loadConfig(gatewayConfigPath, TigerConfig.class);
 
     if (config.getTigerId() == null) {
       throw new TigerQuantException("tigerId is null");

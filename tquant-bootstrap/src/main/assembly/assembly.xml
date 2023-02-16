@@ -1,0 +1,22 @@
+<assembly>
+  <id>assembly</id>
+  <formats>
+    <format>jar</format>
+  </formats>
+  <includeBaseDirectory>true</includeBaseDirectory>
+  <dependencySets>
+    <dependencySet>
+      <useProjectArtifact>false</useProjectArtifact>
+      <outputDirectory>lib</outputDirectory>
+      <scope>runtime</scope>
+      <outputFileNameMapping>${artifact.artifactId}-${artifact.baseVersion}.${artifact.extension}
+      </outputFileNameMapping>
+    </dependencySet>
+  </dependencySets>
+  <fileSets>
+    <fileSet>
+      <directory>target/classes</directory>
+      <outputDirectory>classes</outputDirectory>
+    </fileSet>
+  </fileSets>
+</assembly>

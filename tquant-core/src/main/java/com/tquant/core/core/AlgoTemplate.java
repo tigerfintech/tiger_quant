@@ -138,12 +138,12 @@ public abstract class AlgoTemplate {
 
   }
 
-  public String buy(String symbol, Double price, int volume, OrderType orderType) {
+  public long buy(String symbol, Double price, int volume, OrderType orderType) {
     log("buy {}|{}|{}", symbol, price, volume);
     return algoEngine.sendOrder(getAlgoName(), symbol, Direction.BUY, price, volume, orderType);
   }
 
-  public String sell(String symbol, Double price, int volume, OrderType orderType) {
+  public long sell(String symbol, Double price, int volume, OrderType orderType) {
     log("sell {}|{}|{}", symbol, price, volume);
     return algoEngine.sendOrder(getAlgoName(), symbol, Direction.SELL, price, volume, orderType);
   }

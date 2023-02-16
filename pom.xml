@@ -20,6 +20,7 @@
   </modules>
 
   <properties>
+    <maven.plugin.version>3.1.0</maven.plugin.version>
     <io.github.tigerbrokers.openapi-java-sdk.version>1.4.5</io.github.tigerbrokers.openapi-java-sdk.version>
     <junit.junit.version>4.13.1</junit.junit.version>
     <org.slf4j.slf4j-api.version>1.7.28</org.slf4j.slf4j-api.version>

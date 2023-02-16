@@ -174,6 +174,12 @@ public class Converters {
     List<RealtimeQuote> realtimeQuotes = new ArrayList<>();
     realTimeQuoteItems.stream().forEach(item ->{
       com.tigerbrokers.stock.openapi.client.https.domain.quote.item.HourTrading origHourTrading = item.getHourTrading();
+      HourTrading hourTrading = null;
+      if (origHourTrading != null) {
+        hourTrading =
+            new HourTrading(origHourTrading.getTag(), origHourTrading.getLatestPrice(), origHourTrading.getPreClose(),
+                origHourTrading.getLatestTime(), origHourTrading.getVolume(), origHourTrading.getTimestamp());
+      }
       RealtimeQuote realtimeQuote = RealtimeQuote.builder()
           .symbol(item.getSymbol())
           .askPrice(item.getAskPrice())
@@ -189,9 +195,7 @@ public class Converters {
           .latestPrice(item.getLatestPrice())
           .latestTime(item.getLatestTime())
           .volume(item.getVolume())
-          .hourTrading(
-              new HourTrading(origHourTrading.getTag(), origHourTrading.getLatestPrice(), origHourTrading.getPreClose(),
-                  origHourTrading.getLatestTime(), origHourTrading.getVolume(), origHourTrading.getTimestamp()))
+          .hourTrading(hourTrading)
           .build();
       realtimeQuotes.add(realtimeQuote);
     });

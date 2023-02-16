@@ -82,6 +82,18 @@ public class TigerGateway extends Gateway {
     optionApi = new TigerOptionApi(serverClient);
   }
 
+  public TradeApi getTradeApi() {
+    return tradeApi;
+  }
+
+  public QuoteApi getQuoteApi() {
+    return quoteApi;
+  }
+
+  public OptionApi getOptionApi() {
+    return optionApi;
+  }
+
   @Override
   public void connect() {
     SecType[] secTypes = new SecType[] {SecType.STK, SecType.FUT};
@@ -92,8 +104,8 @@ public class TigerGateway extends Gateway {
       queryPosition(secType);
       queryAccount();
     }
-    String grabQuoteResult = quoteApi.grabQuotePermission();
-    log("grabQuotePermission: {}", grabQuoteResult);
+    quoteApi.grabQuotePermission();
+
     if (!socketClient.isConnected()) {
       socketClient.connect();
     }
@@ -140,7 +152,7 @@ public class TigerGateway extends Gateway {
   }
 
   private void queryAsset(SecType secType) {
-    Asset asset = tradeApi.getAsset(secType.name());
+    Asset asset = tradeApi.getAsset();
     this.assetDict.put(asset.getAccount(), asset);
     onAsset(asset);
   }
@@ -157,10 +169,10 @@ public class TigerGateway extends Gateway {
 
   @Override
   public void subscribe(SubscribeRequest request) {
-    socketClient.subscribe(Subject.OrderStatus);
-    socketClient.subscribe(Subject.Asset);
-    socketClient.subscribe(Subject.Position);
-    socketClient.subscribeQuote(request.getSymbols());
+    //socketClient.subscribe(Subject.OrderStatus);
+    //socketClient.subscribe(Subject.Asset);
+    //socketClient.subscribe(Subject.Position);
+    //socketClient.subscribeQuote(request.getSymbols());
   }
 
   @Override
@@ -169,7 +181,7 @@ public class TigerGateway extends Gateway {
   }
 
   @Override
-  public String sendOrder(OrderRequest request) {
+  public long sendOrder(OrderRequest request) {
     Contract contract = contractDict.get(request.getSymbol());
     if (request.getPrice() == null) {
       return tradeApi.placeMarketOrder(contract, request.getDirection(), request.getQuantity());

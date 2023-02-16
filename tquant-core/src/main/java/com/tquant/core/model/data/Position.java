@@ -1,5 +1,6 @@
 package com.tquant.core.model.data;
 
+import com.tquant.core.model.enums.SecType;
 import lombok.Data;
 
 /**
@@ -11,8 +12,11 @@ import lombok.Data;
 @Data
 public class Position {
 
+  private Contract contract;
   private String account;
   private String symbol;
+  private String secType;
+  private String right;
   private String identifier;
   private String exchange;
   private String direction;
@@ -24,6 +28,9 @@ public class Position {
   private double unrealizedPnl;
 
   public void updatePosition(Position position) {
+    if (position.getSecType() != null) {
+      this.secType = position.getSecType();
+    }
     if (position.getExchange() != null) {
       this.exchange = position.getExchange();
     }
@@ -49,4 +56,25 @@ public class Position {
       this.unrealizedPnl = position.getUnrealizedPnl();
     }
   }
+
+  public boolean isStock() {
+    return secType != null && secType.equalsIgnoreCase(SecType.STK.name());
+  }
+
+  public boolean isOption() {
+    return secType != null && secType.equalsIgnoreCase(SecType.OPT.name());
+  }
+
+  public boolean isOption(String right) {
+    return secType != null && secType.equalsIgnoreCase(SecType.OPT.name()) && getRight().equalsIgnoreCase(right);
+  }
+
+  public boolean isOptionCall() {
+    return isOption("CALL");
+  }
+
+  public boolean isOptionPut() {
+    return isOption("PUT");
+  }
+
 }

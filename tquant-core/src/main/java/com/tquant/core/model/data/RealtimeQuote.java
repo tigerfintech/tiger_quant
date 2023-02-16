@@ -1,6 +1,7 @@
 package com.tquant.core.model.data;
 
 import com.tquant.core.model.enums.StockStatus;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,6 +14,7 @@ import lombok.NoArgsConstructor;
  */
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Builder
 public class RealtimeQuote {
 
@@ -88,5 +90,10 @@ public class RealtimeQuote {
   private StockStatus status;
 
   private HourTrading hourTrading;
+
+  /**
+   * 未平仓量
+   */
+  private Integer openInterest;
 
 }

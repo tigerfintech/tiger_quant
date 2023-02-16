@@ -86,6 +86,10 @@ public class LogEngine extends Engine {
     logger.addAppender(appender);
   }
 
+  public Logger getLogger() {
+    return this.logger;
+  }
+
   public void addFileHandler(String logPathName) {
     String filename = "tiger_quant_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd")) + ".log";
     if (logPathName == null) {

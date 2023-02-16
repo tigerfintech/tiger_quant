@@ -3,6 +3,8 @@
     PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
     "http://mybatis.org/dtd/mybatis-3-config.dtd">
 <configuration>
+  <properties resource="jdbc.properties"></properties>
+
   <typeHandlers>
     <typeHandler handler="com.tquant.storage.typehandler.DurationTypeHandler" />
     <package name="com.tquant.storage.storage.typehandler"/>
@@ -12,10 +14,10 @@
     <environment id="development">
       <transactionManager type="JDBC"/>
       <dataSource type="POOLED">
-        <property name="driver" value="com.mysql.jdbc.Driver"/>
-        <property name="url" value="jdbc:mysql://localhost/tiger_quant?useUnicode=yes&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;useSSL=false"/>
-        <property name="username" value="root"/>
-        <property name="password" value="123456"/>
+        <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+        <property name="url" value="${jdbc.url}"/>
+        <property name="username" value="${jdbc.user}"/>
+        <property name="password" value="${jdbc.password}"/>
       </dataSource>
     </environment>
   </environments>

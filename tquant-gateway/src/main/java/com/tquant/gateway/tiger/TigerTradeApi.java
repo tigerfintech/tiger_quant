@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.tigerbrokers.stock.openapi.client.struct.enums.ActionType;
 import com.tigerbrokers.stock.openapi.client.struct.enums.Currency;
 import com.tigerbrokers.stock.openapi.client.struct.enums.Market;
+import com.tigerbrokers.stock.openapi.client.struct.enums.OrderStatus;
 import com.tigerbrokers.stock.openapi.client.struct.enums.OrderType;
 import com.tigerbrokers.stock.openapi.client.struct.enums.SecType;
 import com.tigerbrokers.stock.openapi.client.struct.enums.TimeInForce;
@@ -49,9 +50,16 @@ public class TigerTradeApi implements TradeApi {
 
   private TigerHttpClient client;
   private String account = TigerConfigLoader.loadTigerConfig().getAccount();
+  private boolean isMock = true;
+  private static long mockOrderId = 1;
 
   public TigerTradeApi(TigerHttpClient client) {
     this.client = client;
+  }
+
+  @Override
+  public void setMock(boolean isMock) {
+    this.isMock = isMock;
   }
 
   @Override
@@ -69,7 +77,10 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
-  public String placeLimitOrder(Contract contract, String actionType, Double price, int quantity) {
+  public long placeLimitOrder(Contract contract, String actionType, Double price, int quantity) {
+    if (isMock) {
+      return mockOrderId++;
+    }
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.PLACE_ORDER);
     String bizContent = TradeParamBuilder.instance()
         .account(account)
@@ -97,11 +108,14 @@ public class TigerTradeApi implements TradeApi {
     if (!response.isSuccess()) {
       throw new RuntimeException("response error,code:" + response.getCode() + ",message:" + response.getMessage());
     }
-    return JSONObject.parseObject(response.getData()).getString("id");
+    return JSONObject.parseObject(response.getData()).getLongValue("id");
   }
 
   @Override
-  public String placeMarketOrder(Contract contract, String actionType, int quantity) {
+  public long placeMarketOrder(Contract contract, String actionType, int quantity) {
+    if (isMock) {
+      return mockOrderId++;
+    }
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.PLACE_ORDER);
 
     String bizContent = TradeParamBuilder.instance()
@@ -129,11 +143,14 @@ public class TigerTradeApi implements TradeApi {
     if (!response.isSuccess()) {
       throw new RuntimeException("response error,code:" + response.getCode() + ",message:" + response.getMessage());
     }
-    return JSONObject.parseObject(response.getData()).getString("id");
+    return JSONObject.parseObject(response.getData()).getLongValue("id");
   }
 
   @Override
   public String cancelOrder(long id) {
+    if (isMock) {
+      return String.valueOf(id);
+    }
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.CANCEL_ORDER);
     String bizContent = TradeParamBuilder.instance()
         .account(account)
@@ -151,6 +168,9 @@ public class TigerTradeApi implements TradeApi {
 
   @Override
   public String modifyOrder(long id, Double limitPrice, int quantity) {
+    if (isMock) {
+      return String.valueOf(id);
+    }
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.MODIFY_ORDER);
     String bizContent = TradeParamBuilder.instance()
         .account(account)
@@ -171,6 +191,12 @@ public class TigerTradeApi implements TradeApi {
 
   @Override
   public Order getOrder(long id) {
+    if (isMock) {
+      Order order = new Order();
+      order.setId(id);
+      order.setStatus(OrderStatus.Filled.name());
+      return order;
+    }
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.ORDERS);
 
     String bizContent = AccountParamBuilder.instance()
@@ -207,8 +233,13 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
+  public List<Order> getOpenOrders() {
+    return getOrderByServiceType(ApiServiceType.ACTIVE_ORDERS, null);
+  }
+
+  @Override
   public List<Order> getOpenOrders(String secType) {
-    return getOrderByServiceType(ApiServiceType.ACTIVE_ORDERS, secType);
+    return getOrderByServiceType(ApiServiceType.FILLED_ORDERS, secType);
   }
 
   @Override
@@ -220,7 +251,7 @@ public class TigerTradeApi implements TradeApi {
     TigerHttpRequest request = new TigerHttpRequest(serviceType);
     String bizContent = AccountParamBuilder.instance()
         .account(account)
-        .secType(SecType.valueOf(secType))
+        .secType(secType == null ? null : SecType.valueOf(secType))
         .isBrief(false)
         .buildJson();
     request.setBizContent(bizContent);
@@ -272,11 +303,13 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
+  public Asset getAsset() {
+    return getAsset(null);
+  }
+
+  @Override
   public Asset getAsset(String secTypeStr) {
-    SecType secType = SecType.valueOf(secTypeStr);
-    if (secType == null || (secType != SecType.FUT && secType != SecType.STK)) {
-      throw new TigerQuantException("get asset secType is null");
-    }
+    SecType secType = secTypeStr == null ? null : SecType.valueOf(secTypeStr);
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.ASSETS);
     String bizContent = AccountParamBuilder.instance()
         .account(account)
@@ -325,7 +358,7 @@ public class TigerTradeApi implements TradeApi {
         .account(account)
         .currency(Currency.USD)
         .market(Market.US)
-        .secType(SecType.valueOf(secType))
+        .secType(secType == null ? null : SecType.valueOf(secType))
         .buildJson();
 
     request.setBizContent(bizContent);
@@ -341,7 +374,32 @@ public class TigerTradeApi implements TradeApi {
         JSONArray items = jsonObject.getJSONArray("items");
         if (items != null) {
           for (int i = 0; i < items.size(); i++) {
-            Position position = items.getJSONObject(i).toJavaObject(Position.class);
+            JSONObject obj = items.getJSONObject(i);
+            Position position = obj.toJavaObject(Position.class);
+            if (position.getContract() == null) {
+              Contract contract = new Contract();
+              contract.setSecType(position.getSecType());
+              contract.setSymbol(position.getSymbol());
+              if (position.getRight() != null) {
+                contract.setRight(position.getRight());
+              }
+              if (obj.getString("expiry")!=null) {
+                contract.setExpiry(obj.getString("expiry"));
+              }
+              if (obj.getDouble("strike")!=null) {
+                contract.setStrike(obj.getDoubleValue("strike"));
+              }
+              contract.setIdentifier(position.getIdentifier());
+              if (obj.getDouble("minTick") != null) {
+                contract.setMinTick(obj.getDoubleValue("minTick"));
+              }
+              if (obj.getDouble("multiplier") != null) {
+                contract.setMultiplier(obj.getDoubleValue("multiplier"));
+              } else {
+                contract.setMultiplier(100D);
+              }
+              position.setContract(contract);
+            }
             if (position.getPosition() > 0) {
               position.setDirection("BUY");
             } else {

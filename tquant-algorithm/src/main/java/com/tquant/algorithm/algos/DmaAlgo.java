@@ -15,7 +15,7 @@ import com.tquant.core.model.enums.OrderType;
  */
 public class DmaAlgo extends AlgoTemplate {
 
-  private String orderId;
+  private Long orderId;
   private String direction;
   private double price;
   private int volume;

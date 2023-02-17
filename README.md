@@ -1,53 +1,108 @@
 ## Tiger Quant
 
-### 启动前配置
-0. 可以把`tiger_quant`项目导入到本地IDE中(比如Idea)，有2种方式导入为maven项目：
-   1. 右键单击根目录下的pom.xml(选择mark as maven project)。
-   2. 在根目录对应的命令行执行编译命令：
+该量化框架是基于`vnpy`的一个java 版本实现，里面集成了一些量化基础功能，同时接入了老虎证券API接口。
+
+### 快速上手
+把`tiger_quant`项目导入到本地IDE中(比如Idea)，有2种方式导入为maven项目：
+   1. 在`tquant-algorithm` 模块下实现自己的策略类（也可以直接运行示例策略）。一个简单的策略大致如下：
+
+   ```java
+        public class BestLimitAlgo extends AlgoTemplate {
+
+          public BestLimitAlgo() {
+          }
+
+          public BestLimitAlgo(Map<String, Object> settings) {
+            super(settings);
+          }
+
+          @Override
+          public void init() {
+            this.direction = (String) settings.get("direction");
+            this.volume = (Integer) settings.get("volume");
+            this.symbol = (String) settings.get("symbol");
+          }
+
+          @Override
+          public void onStart() {
+            //
+            barGenerator = new BarGenerator(bar -> onBar(bar));
+            //订阅 AAPL 行情
+            List<String> symbols = new ArrayList<>();
+            symbols.add("AAPL");
+            subscribe(symbol);
+          }
+        
+          @Override
+          public void onTick(Tick tick) {
+        
+          }
+        
+          private void buyBestLimit() {
+            int orderVolume = volume - traded;
+            orderPrice = lastTick.getBidPrice();
+            if (orderPrice < 10) {
+              buy(symbol, orderPrice, orderVolume, OrderType.LMT);
+            }
+          }
+        
+          private void sellBestLimit() {
+            int orderVolume = volume - traded;
+            orderPrice = lastTick.getAskPrice();
+            if (orderPrice > 12) {
+              sell(symbol, orderPrice, orderVolume, OrderType.LMT);
+            }
+          }
+        
+          @Override
+          public void onOrder(Order order) {
+            
+          }
+        
+          @Override
+          public void onTrade(Trade trade) {
+          }
+        
+          @Override
+          public void onBar(Bar bar) {
+            log("onBar {}", bar);
+          }
+    }
+   ```
+
+   实现的策略类需要继承 `AlgoTemplate`类，这样即可调用封装好的一些实现方法，同时自动注入策略配置项。常用方法包括：buy，sell等下单功能，onBar（K线），onOrder（订单），onTick（实时行情）等实时事件，还有一些券商封装的api接口以及日志功能等。
+   
+   3. 完整项目配置，项目需要完成2个配置文件的配置，一个是`algo_setting.json`，对应的是策略参数。另一个是`gateway_setting.json`，对应老虎API的账号信息。
+   可以拷贝根目录下的配置模板，完成对应配置。
+   
+   4. 实现完策略以及配置工作后，即可开始进行项目的编译打包，以及运行了。在项目的根目录下执行如下mvn命令即可完成打包工作：
     ```shell script
     mvn -U clean install  -Dmaven.test.skip=true
     ```
-    等命令执行完成后，即可正常运行项目。
+    等命令执行完成后，会在 `tquant-bootstrap`的`target`目录下生成可执行jar包：`tquant-bootstrap-1.0.0-jar-with-dependencies.jar`，
+    把该jar包以及`algo_setting.json`，`gateway_setting.json`拷贝到指定目录后，再通过执行如下命令即可运行策略：
+    ```
+        java -jar tquant-bootstrap-1.0.0-jar-with-dependencies.jar -a /yourpath/algo_setting.json -g /yourpath/tiger_gateway_setting.json
+    ```
+    调试阶段也可以通过IDE来运行，通过配置`TigerQuantBootstrap`的启动参数即可。如在Idea编辑器里的配置如下：
+    
 
-1. 编译完成后，在本地安装mysql数据库，按照 `tquant-storage` 模块下的 `resources/datasource/mysql_table_create.sql` 中的sql来创建本地数据库和表
+   5. 停止策略执行
+    * 在命令行执行查出项目运行的进程 pid。
+    ```
+        ps -ef|grep TigerQuantBootstrap
+    ```
+    执行kill命令停止策略运行
+    ```
+        kill {pid}
+    ```
+    kill命令执行时会同时执行项目的stop方法回调。
 
-2. 把 `tquant-storage` 模块下的 `resources/datasource/mybatis-config.xml` 文件中的数据库连接信息改成本地数据库配置，用户名和密码
-![image](https://user-images.githubusercontent.com/3766355/156764862-d559d515-4119-4ec3-8abe-9548bb7930b8.png)
-
-3. 配置 `tquant-gateway` 模块下的 `resources/tiger_gateway_setting.json` Tiger OpenAPI 账号信息(参考下方配置说明)
-
-4. 执行`tquant-loader` 模块下的命令，可以下载历史数据，包括合约，K线，逐笔等数据。
-比如BarLoader来举例，项目导入Idea后，需要在Idea启动配置中设置参数：
-![bar_loader_example](https://user-images.githubusercontent.com/3766355/187683121-3740af44-6b20-41e6-b907-091de1e3856b.png)
-
-然后启动 BarLoader 下载K线数据，合约和逐笔数据的下载方法也是类似方式。
-
-以上步骤执行后，可以执行下面的启动命令来运行量化策略程序。
-
-5. `tquant-algorithm` 是策略模块，里面包含了部分策略示例
-6. 策略编写完成后，可以通过 `tquant-backtester` 回测模块完成功能回测（会用到K线或逐笔数据，可以通过`tquant-loader`模块提前导入），里面有可以直接执行的main方法。如：
-`com.tquant.backtester.Backtesting.main`
-，可以参考已实现的示例，需注意下单接口要在回测模块中进行覆盖，否则会导致回测服务启动失败。
-
-7. 策略正式上线时，会通过 `tquant-bootstrap` 模块中的 `com.tquant.bootstrap.TigerQuantBootstrap` 来启动，也可以通过IDE方式来启动。
-
-### 启动命令
-`tquant-bootstrap` 模块中的 TigerQuantBootstrap 是项目的Main方法入口，负责项目的启动。
-
-### 停止命令
-* 查出项目运行的进程 pid。
-ps -ef|grep TigerQuantBootstrap
-* kill pid。
-kill命令执行时会同时执行项目的stop方法回调。
-
-### 策略编写
-用户实现的策略需要继承自AlgoTemplate，同时要提供默认构造方法。
-在algorithm/algos文件目录下实现了几个demo策略，可以参考一下。
 
 ### 配置说明
 
 #### 策略配置
-策略配置文件名：`algo_setting.json` , 在 `tquant-algorithm` 模块`resource`目录下。
+策略配置文件：`algo_setting.json`
 
 每个算法文件对应一个配置项，配置项的Key与策略Java文件名称要保持一致。
 配置项中必填参数如下：
@@ -92,8 +147,8 @@ kill命令执行时会同时执行项目的stop方法回调。
 * log.path：日志输出到文件的路径。支持绝对路径和相对路径。默认当前项目下的log目录
 * storage.enable：是否开启持久化存储。true 开启，false 不开启
 
-### 柜台配置
-目前只支持Tiger券商接口，配置文件名：`tiger_gateway_setting.json`，在 `tquant-gateway` 模块 `resources` 目录下。
+### 接入券商配置
+目前只支持Tiger券商接口，配置文件名：`gateway_setting.json`
 
 * gateway：固定为TigerGateway
 * apiLogEnable：是否开启SDK的日志记录

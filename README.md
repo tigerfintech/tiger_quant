@@ -3,100 +3,98 @@
 该量化框架是基于`vnpy`的一个java 版本实现，里面集成了一些量化基础功能，同时接入了老虎证券API接口。
 
 ### 快速上手
-把`tiger_quant`项目导入到本地IDE中(比如Idea)，有2种方式导入为maven项目：
-   1. 在`tquant-algorithm` 模块下实现自己的策略类（也可以直接运行示例策略）。一个简单的策略大致如下：
+* 首先要把`tiger_quant`项目导入到本地IDE中(比如Idea)，导入成maven项目
+* 然后完成策略的编写，在`tquant-algorithm` 模块下实现自己的策略类（也可以直接运行示例策略）。一个简单的策略大致如下：
+```java
+    public class BestLimitAlgo extends AlgoTemplate {
 
-   ```java
-        public class BestLimitAlgo extends AlgoTemplate {
+      public BestLimitAlgo() {
+      }
 
-          public BestLimitAlgo() {
-          }
+      public BestLimitAlgo(Map<String, Object> settings) {
+        super(settings);
+      }
 
-          public BestLimitAlgo(Map<String, Object> settings) {
-            super(settings);
-          }
+      @Override
+      public void init() {
+        this.direction = (String) settings.get("direction");
+        this.volume = (Integer) settings.get("volume");
+        this.symbol = (String) settings.get("symbol");
+      }
 
-          @Override
-          public void init() {
-            this.direction = (String) settings.get("direction");
-            this.volume = (Integer) settings.get("volume");
-            this.symbol = (String) settings.get("symbol");
-          }
-
-          @Override
-          public void onStart() {
-            //
-            barGenerator = new BarGenerator(bar -> onBar(bar));
-            //订阅 AAPL 行情
-            List<String> symbols = new ArrayList<>();
-            symbols.add("AAPL");
-            subscribe(symbol);
-          }
-        
-          @Override
-          public void onTick(Tick tick) {
-        
-          }
-        
-          private void buyBestLimit() {
-            int orderVolume = volume - traded;
-            orderPrice = lastTick.getBidPrice();
-            if (orderPrice < 10) {
-              buy(symbol, orderPrice, orderVolume, OrderType.LMT);
-            }
-          }
-        
-          private void sellBestLimit() {
-            int orderVolume = volume - traded;
-            orderPrice = lastTick.getAskPrice();
-            if (orderPrice > 12) {
-              sell(symbol, orderPrice, orderVolume, OrderType.LMT);
-            }
-          }
-        
-          @Override
-          public void onOrder(Order order) {
-            
-          }
-        
-          @Override
-          public void onTrade(Trade trade) {
-          }
-        
-          @Override
-          public void onBar(Bar bar) {
-            log("onBar {}", bar);
-          }
-    }
-   ```
-
-   实现的策略类需要继承 `AlgoTemplate`类，这样即可调用封装好的一些实现方法，同时自动注入策略配置项。常用方法包括：buy，sell等下单功能，onBar（K线），onOrder（订单），onTick（实时行情）等实时事件，还有一些券商封装的api接口以及日志功能等。
-   
-   3. 完整项目配置，项目需要完成2个配置文件的配置，一个是`algo_setting.json`，对应的是策略参数。另一个是`gateway_setting.json`，对应老虎API的账号信息。
-   可以拷贝根目录下的配置模板，完成对应配置。
-   
-   4. 实现完策略以及配置工作后，即可开始进行项目的编译打包，以及运行了。在项目的根目录下执行如下mvn命令即可完成打包工作：
-    ```shell script
-    mvn -U clean install  -Dmaven.test.skip=true
-    ```
-    等命令执行完成后，会在 `tquant-bootstrap`的`target`目录下生成可执行jar包：`tquant-bootstrap-1.0.0-jar-with-dependencies.jar`，
-    把该jar包以及`algo_setting.json`，`gateway_setting.json`拷贝到指定目录后，再通过执行如下命令即可运行策略：
-    ```
-        java -jar tquant-bootstrap-1.0.0-jar-with-dependencies.jar -a /yourpath/algo_setting.json -g /yourpath/tiger_gateway_setting.json
-    ```
-    调试阶段也可以通过IDE来运行，通过配置`TigerQuantBootstrap`的启动参数即可。如在Idea编辑器里的配置如下：
+      @Override
+      public void onStart() {
+        //
+        barGenerator = new BarGenerator(bar -> onBar(bar));
+        //订阅 AAPL 行情
+        List<String> symbols = new ArrayList<>();
+        symbols.add("AAPL");
+        subscribe(symbol);
+      }
     
+      @Override
+      public void onTick(Tick tick) {
+    
+      }
+    
+      private void buyBestLimit() {
+        int orderVolume = volume - traded;
+        orderPrice = lastTick.getBidPrice();
+        if (orderPrice < 10) {
+          buy(symbol, orderPrice, orderVolume, OrderType.LMT);
+        }
+      }
+    
+      private void sellBestLimit() {
+        int orderVolume = volume - traded;
+        orderPrice = lastTick.getAskPrice();
+        if (orderPrice > 12) {
+          sell(symbol, orderPrice, orderVolume, OrderType.LMT);
+        }
+      }
+    
+      @Override
+      public void onOrder(Order order) {
+        
+      }
+    
+      @Override
+      public void onTrade(Trade trade) {
+      }
+    
+      @Override
+      public void onBar(Bar bar) {
+        log("onBar {}", bar);
+      }
+}
+```
+实现的策略类需要继承 `AlgoTemplate`类，这样即可调用封装好的一些实现方法，同时自动注入策略配置项。常用方法包括：buy，sell等下单功能，onBar（K线），onOrder（订单），onTick（实时行情）等实时事件，还有一些券商封装的api接口以及日志功能等。
+   
+* 完整项目配置，项目需要完成2个配置文件的配置，一个是`algo_setting.json`，对应的是策略参数。另一个是`gateway_setting.json`，对应老虎API的账号信息。
+可以拷贝根目录下的配置模板，完成对应配置。
 
-   5. 停止策略执行
-    * 在命令行执行查出项目运行的进程 pid。
-    ```
-        ps -ef|grep TigerQuantBootstrap
-    ```
-    执行kill命令停止策略运行
-    ```
-        kill {pid}
-    ```
-    kill命令执行时会同时执行项目的stop方法回调。
+* 实现完策略以及配置工作后，即可开始进行项目的编译打包，以及运行了。在项目的根目录下执行如下mvn命令即可完成打包工作：
+```shell script
+mvn -U clean install  -Dmaven.test.skip=true
+```
+等命令执行完成后，会在 `tquant-bootstrap`的`target`目录下生成可执行jar包：`tquant-bootstrap-1.0.0-jar-with-dependencies.jar`，
+把该jar包以及`algo_setting.json`，`gateway_setting.json`拷贝到指定目录后，再通过执行如下命令即可运行策略：
+```
+    java -jar tquant-bootstrap-1.0.0-jar-with-dependencies.jar -a /yourpath/algo_setting.json -g /yourpath/tiger_gateway_setting.json
+```
+调试阶段也可以通过IDE来运行，通过配置`TigerQuantBootstrap`的启动参数即可。如在Idea编辑器里的配置如下：
+
+
+* 停止策略执行
+1）在命令行执行查出项目运行的进程 pid。
+```
+    ps -ef|grep TigerQuantBootstrap
+```
+2）执行kill命令停止策略运行
+```
+    kill {pid}
+```
+kill命令执行时会同时执行项目的stop方法回调。
 
 
 ### 配置说明

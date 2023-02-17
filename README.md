@@ -83,17 +83,12 @@ mvn -U clean install  -Dmaven.test.skip=true
 ```
 调试阶段也可以通过IDE来运行，通过配置`TigerQuantBootstrap`的启动参数即可。如在Idea编辑器里的配置如下：
 
-
-* 停止策略执行
-1）在命令行执行查出项目运行的进程 pid。
+5. 停止策略执行
+在命令行下执行`ps`命令查出项目运行的进程 pid。再执行kill命令停止策略运行，kill命令执行时会同时执行项目的stop方法回调。
 ```
     ps -ef|grep TigerQuantBootstrap
-```
-2）执行kill命令停止策略运行
-```
     kill {pid}
 ```
-kill命令执行时会同时执行项目的stop方法回调。
 
 
 ### 配置说明

@@ -151,6 +151,8 @@ kill命令执行时会同时执行项目的stop方法回调。
 * log.file：日志是否输出到文件。true 输出到文件，false 不输出到文件
 * log.path：日志输出到文件的路径。支持绝对路径和相对路径。默认当前项目下的log目录
 * storage.enable：是否开启持久化存储。true 开启，false 不开启
+* subscribe.enable: 是否开启API长连接订阅，默认为 false，开启后会通过长连接回调方法获取实时行情，交易订单变更，持仓和资产变更等。未开启的话可以通过API接口获取对应数据。
+* contract.load.enable: 是否在启动时开启合约加载，默认为 false，开启后会通过本地数据库加载全量合约，需要配合`tquant-loader`中的合约加载功能一块儿使用。
 
 ### 接入券商配置
 目前只支持Tiger券商接口，配置文件名：`gateway_setting.json`

@@ -4,5 +4,7 @@
   "log.console": false,
   "log.file": true,
   "log.path": "log/",
-  "storage.enable": true
+  "storage.enable": true,
+  "subscribe.enable": false,
+  "contract.load.enable": false
 }

@@ -1,6 +1,7 @@
 package com.tquant.gateway.tiger;
 
 import com.tquant.core.TigerQuantException;
+import com.tquant.core.config.ConfigLoader;
 import com.tquant.gateway.api.OptionApi;
 import com.tquant.gateway.api.QuoteApi;
 import com.tquant.gateway.api.TradeApi;
@@ -42,6 +43,8 @@ public class TigerGateway extends Gateway {
   private TigerHttpClient serverClient;
   private WebSocketClient socketClient;
   private TigerConfig config;
+  private static Boolean contractLoadEnabled = (Boolean) ConfigLoader.GLOBAL_SETTINGS.get("contract.load.enable");
+  private static Boolean subscribeEnabled = (Boolean) ConfigLoader.GLOBAL_SETTINGS.get("subscribe.enable");
   private TradeApi tradeApi;
   private QuoteApi quoteApi;
   private OptionApi optionApi;
@@ -158,6 +161,9 @@ public class TigerGateway extends Gateway {
   }
 
   private void queryContract() {
+    if (contractLoadEnabled == null || !contractLoadEnabled) {
+      return;
+    }
     log("contract loading......");
     List<Contract> contracts = contractDAO.queryContracts();
     for (Contract contract : contracts) {
@@ -169,10 +175,13 @@ public class TigerGateway extends Gateway {
 
   @Override
   public void subscribe(SubscribeRequest request) {
-    //socketClient.subscribe(Subject.OrderStatus);
-    //socketClient.subscribe(Subject.Asset);
-    //socketClient.subscribe(Subject.Position);
-    //socketClient.subscribeQuote(request.getSymbols());
+    if (subscribeEnabled == null || !subscribeEnabled) {
+      return;
+    }
+    socketClient.subscribe(Subject.OrderStatus);
+    socketClient.subscribe(Subject.Asset);
+    socketClient.subscribe(Subject.Position);
+    socketClient.subscribeQuote(request.getSymbols());
   }
 
   @Override

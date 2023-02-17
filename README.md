@@ -1,8 +1,13 @@
-## Tiger Quant
+# Tiger Quant
 
 该量化框架是基于`vnpy`的一个java 版本实现，里面集成了一些量化基础功能，同时接入了老虎证券API接口。
 
-### 快速上手
+## 环境准备
+
+* 支持Windows、Linux、Mac等常见操作系统。
+* JDK 1.8 及以上。
+
+## 快速上手
 1. **首先要把`tiger_quant`项目导入到本地IDE中(比如Idea)，导入成maven项目**。
 2. **然后完成策略的编写，在`tquant-algorithm` 模块下实现自己的策略类（也可以直接运行示例策略）**。一个简单的策略大致如下：
 ```java
@@ -92,9 +97,9 @@ mvn -U clean install  -Dmaven.test.skip=true
 ```
 
 
-### 配置说明
+## 配置说明
 
-#### 策略配置
+### 策略配置
 策略配置文件：`algo_setting.json`
 
 每个算法文件对应一个配置项，配置项的Key与策略Java文件名称要保持一致。
@@ -129,7 +134,7 @@ mvn -U clean install  -Dmaven.test.skip=true
 }
 ```
 
-#### 全局配置
+### 全局配置
 全局配置文件名：`global_setting.json` ， 在`tquant-core`模块 `resources` 目录下。
 
 
@@ -164,7 +169,7 @@ mvn -U clean install  -Dmaven.test.skip=true
  }
 ```
 
-### 外部依赖
+## 外部依赖
 
 #### ta4j
 
@@ -172,12 +177,7 @@ mvn -U clean install  -Dmaven.test.skip=true
 * 项目地址：https://github.com/ta4j/ta4j
 * 项目wiki：https://github.com/ta4j/ta4j-wiki
 
-### 环境准备
 
-* 支持windows、linux、mac等常见系统。
-* JDK 1.8 以及以上。
-
-
-### 问题反馈
+## 问题反馈
 
 使用上遇到任何问题，或有任何建议，欢迎在github上反馈，也欢迎加入官方QQ群：441334668。

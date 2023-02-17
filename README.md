@@ -11,7 +11,7 @@
 ### 1. 导出项目到本地
 首先要把`tiger_quant`项目导入到本地IDE中(比如Idea)，导入成maven项目。
 
-### 2. **然后完成策略的编写
+### 2. 编写策略
 在`tquant-algorithm` 模块下实现自己的策略类（也可以直接运行示例策略）**。一个简单的策略大致如下：
 ```java
     public class BestLimitAlgo extends AlgoTemplate {
@@ -78,10 +78,10 @@
 ```
 实现的策略类需要继承 `AlgoTemplate`类，这样即可调用封装好的一些方法，同时自动注入策略配置项。常用的封装方法包括：buy，sell等下单功能，onBar（K线），onOrder（订单），onTick（实时行情）等实时事件，还有一些券商封装的api接口以及日志功能等。
    
-### 3. 实现策略后，要完成对应的策略配置，以及券商API配置
+### 3. 完成对应的策略配置及券商接入配置
 可以拷贝根目录下的2个配置模板，一个是`algo_setting.json`，对应的是策略参数。另一个是`gateway_setting.json`，对应老虎API的账号信息，完成对应配置即可（下面有详细的配置说明）。
 
-### 4. 项目的编译打包以及运行
+### 4. 编译运行策略
 
 在项目的根目录下执行如下mvn命令即可完成打包工作：
 ```shell script
@@ -95,8 +95,9 @@ mvn -U clean install  -Dmaven.test.skip=true
 调试阶段也可以通过IDE来运行，通过配置`TigerQuantBootstrap`的启动参数即可。如在Idea编辑器里的配置如下：
 ![tquant-bootstrap](https://user-images.githubusercontent.com/3766355/219582428-9f2a6d81-4118-46f5-82c5-1fe77e0ea306.png)
 
-### 5. 停止策略执行
-在命令行下执行`ps`命令查出项目运行的进程 pid。再执行kill命令停止策略运行，kill命令执行时会同时执行项目的stop方法回调。
+### 5. 停止执行策略
+有些策略是在程序里自动退出的，也有一些策略是一直运行的，如想停止对应的策略，可以在命令行下执行`ps`命令查出项目运行的进程 pid，再执行kill命令停止策略运行。
+kill命令执行时会同时执行项目的stop方法回调。
 ```
     ps -ef|grep TigerQuantBootstrap
     kill {pid}

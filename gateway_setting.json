@@ -1,0 +1,8 @@
+{
+  "gateway": "TigerGateway",
+  "apiLogEnable": true,
+  "apiLogPath": "log/",
+  "tigerId": "",
+  "account": "",
+  "privateKey": ""
+}

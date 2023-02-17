@@ -5,7 +5,7 @@
    1. 右键单击根目录下的pom.xml(选择mark as maven project)。
    2. 在根目录对应的命令行执行编译命令：
     ```shell script
-    mvn clean compile  -Dmaven.test.skip=true
+    mvn -U clean install  -Dmaven.test.skip=true
     ```
     等命令执行完成后，即可正常运行项目。
 

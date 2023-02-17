@@ -1,0 +1,110 @@
+{
+  "BestLimitAlgo": {
+    "enable": false,
+    "class":"com.tquant.algorithm.algos.BestLimitAlgo",
+    "direction": "BUY",
+    "volume": 100,
+    "symbol": "00700"
+  },
+  "DmaAlgo": {
+    "enable": false,
+    "class":"com.tquant.algorithm.algos.DmaAlgo",
+    "direction": "BUY",
+    "price": 13.2,
+    "volume": 100
+  },
+  "SmaAlgo": {
+    "enable": false,
+    "class":"com.tquant.algorithm.algos.SmaAlgo",
+    "symbol": "AAPL",
+    "bars": 300
+  },
+  "OptionCoveredCallAlgo": {
+    "enable": false,
+    "class": "com.tquant.algorithm.algos.OptionCoveredCallAlgo",
+    "symbol": "AAPL",
+    "expiryDate": "2022-09-02"
+  },
+  "ThetaGangAlgo": {
+    "enable": true,
+    "class":"com.tquant.algorithm.algos.ThetaGangAlgo",
+    "account": {
+      "account_id": "643795",
+      "cancel_orders": true,
+      "margin_usage": 0.5,
+      "market_data_type": 1
+    },
+    "orders": {
+      "exchange": "SMART",
+      "algo": {
+        "strategy": "Adaptive",
+        "params": [
+          [
+            "adaptivePriority",
+            "Patient"
+          ]
+        ]
+      }
+    },
+    "option_chains": {
+      "expirations": 4,
+      "strikes": 10
+    },
+    "roll_when": {
+      "pnl": 0.9,
+      "dte": 15,
+      "min_pnl": 0.2,
+      "close_at_pnl": 0.1,
+      "calls": {
+        "itm": true,
+        "credit_only": false
+      },
+      "puts": {
+        "itm": false,
+        "credit_only": false
+      }
+    },
+    "write_when": {
+      "calls": {
+        "green": true,
+        "cap_factor": 1
+      },
+      "puts": {
+        "red": true
+      }
+    },
+    "target": {
+      "dte": 45,
+      "delta": 0.3,
+      "maximum_new_contracts_percent": 0.05,
+      "minimum_open_interest": 10
+    },
+    "symbols": {
+      "SPY": {
+        "weight": 0.4
+      },
+      "QQQ": {
+        "weight": 0.3,
+        "puts": {
+          "delta": 0.5,
+          "strike_limit": 1000
+        },
+        "calls": {
+          "strike_limit": 100
+        }
+      },
+      "FUTU": {
+        "weight": 0.2,
+        "delta": 0.4
+      },
+      "BABA": {
+        "primary_exchange": "NASDAQ",
+        "weight": 0.05
+      },
+      "JD": {
+        "primary_exchange": "NYSE",
+        "weight": 0.05
+      }
+    }
+  }
+}

@@ -82,6 +82,7 @@ mvn -U clean install  -Dmaven.test.skip=true
     java -jar tquant-bootstrap-1.0.0-jar-with-dependencies.jar -a /yourpath/algo_setting.json -g /yourpath/tiger_gateway_setting.json
 ```
 调试阶段也可以通过IDE来运行，通过配置`TigerQuantBootstrap`的启动参数即可。如在Idea编辑器里的配置如下：
+![tquant-bootstrap](https://user-images.githubusercontent.com/3766355/219582428-9f2a6d81-4118-46f5-82c5-1fe77e0ea306.png)
 
 5. 停止策略执行
 在命令行下执行`ps`命令查出项目运行的进程 pid。再执行kill命令停止策略运行，kill命令执行时会同时执行项目的stop方法回调。

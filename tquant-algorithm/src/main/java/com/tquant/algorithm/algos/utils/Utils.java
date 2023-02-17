@@ -21,6 +21,7 @@ import java.util.Map;
  */
 public class Utils {
   private static DateTimeFormatter YYYY_MM_DD_FORMAT = DateTimeFormatter.ofPattern("yyyyMMdd");
+  private static DateTimeFormatter YYYY_MM_DD_SEP_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
   private static DateTimeFormatter YYYY_MM_FORMAT = DateTimeFormatter.ofPattern("yyyyMM");
 
   public static LocalDate contractDateToDatetime(String expiration) {
@@ -41,7 +42,14 @@ public class Utils {
   }
 
   public static LocalDate convertStringToLocalDate(String date) {
-    return LocalDate.parse(date, YYYY_MM_DD_FORMAT);
+    if (date != null) {
+      if (date.length() == 8) {
+        return LocalDate.parse(date, YYYY_MM_DD_FORMAT);
+      } else if (date.length() == 10) {
+        return LocalDate.parse(date, YYYY_MM_DD_SEP_FORMAT);
+      }
+    }
+    return null;
   }
 
   public static Map<String, List<Position>> portfolioPositionsToDict(List<Position> portfolioPositions) {
@@ -138,9 +146,17 @@ public class Utils {
   public static Double getTargetDelta(RollingSellPutConfig config, String symbol, String right) {
     RollingSellPutConfig.Symbol configSymbol = config.getSymbols().get(symbol);
     if (isCall(right)) {
-      return configSymbol.getCalls().getDelta();
+      if (configSymbol.getCalls() != null && configSymbol.getCalls().getDelta() != null) {
+        return configSymbol.getCalls().getDelta();
+      } else {
+        return configSymbol.getDelta();
+      }
     } else if (isPut(right)) {
-      return configSymbol.getPuts().getDelta();
+      if (configSymbol.getPuts() != null && configSymbol.getPuts().getDelta() != null) {
+        return configSymbol.getPuts().getDelta();
+      } else {
+        return configSymbol.getDelta();
+      }
     }
     return null;
   }

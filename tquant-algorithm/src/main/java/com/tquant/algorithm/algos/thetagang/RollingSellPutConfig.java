@@ -135,16 +135,16 @@ public class RollingSellPutConfig {
     @NoArgsConstructor
     public static class Puts {
 
-      private double delta;
-      private double strikeLimit;
+      private Double delta;
+      private Double strikeLimit;
     }
 
     @Data
     @NoArgsConstructor
     public static class Calls {
 
-      private double delta;
-      private double strikeLimit;
+      private Double delta;
+      private Double strikeLimit;
     }
   }
 }

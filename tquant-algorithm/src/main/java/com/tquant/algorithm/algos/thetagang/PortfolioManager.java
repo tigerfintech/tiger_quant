@@ -99,9 +99,8 @@ public class PortfolioManager {
   private Tick getTickerForOption(Contract contract) {
     List<OptionBriefItem> optionBrief = optionApi
         .getOptionBrief(contract.getSymbol(), Right.valueOf(contract.getRight()), contract.getStrike().toString(),
-            contract.getExpiry());
-    OptionBriefItem optionBriefItem = optionBrief.get(0);
-    return new Tick(Utils.convertToRealtimeQuote(optionBriefItem), contract);
+            contract.getExpiry().replaceAll("-",""));
+    return new Tick(Utils.convertToRealtimeQuote(optionBrief.get(0)), contract);
   }
 
   private Tick getTickerFor(Contract contract) {
@@ -805,38 +804,57 @@ public class PortfolioManager {
         "Searching option chain for symbol={} right={}, strike_limit={}, minimum_price={} this can take a while...",
         symbol, right, strikeLimit, minimumPrice);
 
-    Contract stock = newContract(symbol, SecType.STK, null);
+    Contract stock = newContract(symbol, SecType.STK, Right.valueOf(right));
     Tick ticker = getTickerForStock(stock);
 
-    List<OptionRealTimeQuoteGroup> chains = getChainsForStock(stock);
-
-    List<Double> strikes = new ArrayList<>();
-    for (OptionRealTimeQuoteGroup quoteGroup : chains) {
-      double chainStrike =
-          Double.parseDouble(Utils.isCall(right) ? quoteGroup.getCall().getStrike() : quoteGroup.getPut().getStrike());
-      if (Utils.isValidStrike(right, chainStrike,  ticker.getLatestPrice(), strikeLimit)) {
-        strikes.add(chainStrike);
-      }
-    }
-    Collections.sort(strikes);
+    List<String> rights = Collections.singletonList(right);
 
     int minDte = 0;
     if (excludeExpirationsBefore != null) {
       minDte = Utils.optionDte(excludeExpirationsBefore);
     }
 
-    List<String> expirations = optionApi.getOptionExpiration(symbol).getDates();
-    for (String exp : expirations) {
+    List<String> allExpirations = optionApi.getOptionExpiration(symbol).getDates();
+    List<String> expirations = new ArrayList<>();
+    for (String exp : allExpirations) {
       int optionDTE = Utils.optionDte(exp);
       if (optionDTE >= config.getTarget().getDte() && optionDTE >= minDte) {
         expirations.add(exp);
       }
     }
+    if (expirations.isEmpty()) {
+      return null;
+    }
     Collections.sort(expirations);
-
     int chainExpirations = Math.min(config.getOptionChains().getExpirations(), expirations.size());
     expirations = expirations.subList(0, chainExpirations);
-    List<String> rights = Collections.singletonList(right);
+
+
+    stock.setExpiry(expirations.get(0));
+    List<OptionRealTimeQuoteGroup> chains = getChainsForStock(stock);
+
+    List<Double> strikes = new ArrayList<>();
+    for (OptionRealTimeQuoteGroup quoteGroup : chains) {
+      double chainStrike;
+      if (Utils.isCall(right)) {
+        if (quoteGroup.getCall() == null) {
+          continue;
+        }
+        chainStrike = Double.parseDouble(quoteGroup.getCall().getStrike());
+      }else {
+        if (quoteGroup.getPut() == null) {
+          continue;
+        }
+        chainStrike = Double.parseDouble(quoteGroup.getPut().getStrike());
+      }
+      if (Utils.isValidStrike(right, chainStrike,  ticker.getLatestPrice(), strikeLimit)) {
+        strikes.add(chainStrike);
+      }
+    }
+    if (strikes.isEmpty()) {
+      return null;
+    }
+    Collections.sort(strikes);
 
     List<Contract> contracts = new ArrayList<>();
     for (String loopRight : rights) {
@@ -881,9 +899,13 @@ public class PortfolioManager {
   public List<Double> getNearestStrikes(List<Double> strikes, String right) {
     int chainStrikes = this.config.getOptionChains().getStrikes();
     if (right.equalsIgnoreCase(Right.PUT.name())) {
+      if (strikes.size() < chainStrikes) {
+        System.out.println(strikes.subList(0, Math.min(chainStrikes, strikes.size())));
+        return strikes;
+      }
       return strikes.subList(strikes.size() - chainStrikes, strikes.size());
     } else {
-      return strikes.subList(0, chainStrikes);
+      return strikes.subList(0, Math.min(chainStrikes, strikes.size()));
     }
   }
 

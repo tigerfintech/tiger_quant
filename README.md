@@ -12,7 +12,7 @@
 首先要把`tiger_quant`项目导入到本地IDE中(比如Idea)，导入成maven项目。
 
 ### 2. 编写策略
-在`tquant-algorithm` 模块下实现自己的策略类（也可以直接运行示例策略）**。一个简单的策略大致如下：
+在`tquant-algorithm` 模块下实现自己的策略类（也可以直接运行示例策略）。一个简单的策略大致如下：
 ```java
     public class BestLimitAlgo extends AlgoTemplate {
 

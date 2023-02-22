@@ -1,6 +1,7 @@
 package com.tquant.core.model.data;
 
 import com.alibaba.fastjson.JSONObject;
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
@@ -132,10 +133,6 @@ public class Tick extends StockData implements BaseData {
     if (tick.getAmount() > 0) {
       this.amount = tick.getAmount();
     }
-
-    if (tick.getAskPrice() > 0 && tick.getBidPrice() > 0) {
-      this.midpoint = (tick.getAskPrice() + tick.getBidPrice()) / 2;
-    }
   }
 
   public void jsonToTick(JSONObject jsonObject) {
@@ -165,9 +162,6 @@ public class Tick extends StockData implements BaseData {
     this.askSize = jsonObject.getIntValue("askSize");
     this.bidPrice = jsonObject.getDoubleValue("bidPrice");
     this.bidSize = jsonObject.getIntValue("bidSize");
-    if (this.askPrice > 0 && this.bidPrice > 0) {
-      this.midpoint = (this.askPrice + this.bidPrice) / 2;
-    }
 
     String hourTradingTag = jsonObject.getString("hourTradingTag");
     if (hourTradingTag != null && hourTradingTag.equals("盘前")) {
@@ -184,5 +178,13 @@ public class Tick extends StockData implements BaseData {
         this.volume = volume;
       }
     }
+  }
+
+  public double getMidpoint() {
+    if (this.askPrice > 0 && this.bidPrice > 0) {
+      this.midpoint =
+          new BigDecimal((this.askPrice + this.bidPrice) / 2).setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue();
+    }
+    return this.midpoint;
   }
 }

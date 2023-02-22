@@ -17,7 +17,6 @@ public class RollingSellPutConfig {
 
   private boolean enable;
   private Account account;
-  private boolean cancelOrders;
   private int marketDataType;
   private Orders orders;
   private OptionChains optionChains;
@@ -129,7 +128,7 @@ public class RollingSellPutConfig {
     private Puts puts;
     private Calls calls;
     private String primaryExchange;
-    private double delta;
+    private Double delta;
 
     @Data
     @NoArgsConstructor

@@ -3,6 +3,7 @@ package com.tquant.algorithm.algos.utils;
 import com.tigerbrokers.stock.openapi.client.https.domain.option.item.OptionBriefItem;
 import com.tigerbrokers.stock.openapi.client.struct.enums.Right;
 import com.tquant.algorithm.algos.thetagang.RollingSellPutConfig;
+import com.tquant.core.model.data.Contract;
 import com.tquant.core.model.data.Position;
 import com.tquant.core.model.data.RealtimeQuote;
 import com.tquant.core.model.data.Tick;
@@ -74,18 +75,20 @@ public class Utils {
    * @return
    */
   public static double midpointOrMarketPrice(Tick ticker) {
-    if (ticker.getMidpoint() <= 0) {
+    double midpoint = ticker.getMidpoint();
+    if (midpoint <= 0) {
       return ticker.getLatestPrice();
     } else {
-      return ticker.getMidpoint();
+      return midpoint;
     }
   }
 
   public static double midpointOrAskPrice(Tick ticker) {
-    if (ticker.getMidpoint() <= 0D) {
+    double midpoint = ticker.getMidpoint();
+    if (midpoint <= 0D) {
       return ticker.getAskPrice();
     } else {
-      return ticker.getMidpoint();
+      return midpoint;
     }
   }
 
@@ -148,14 +151,18 @@ public class Utils {
     if (isCall(right)) {
       if (configSymbol.getCalls() != null && configSymbol.getCalls().getDelta() != null) {
         return configSymbol.getCalls().getDelta();
-      } else {
+      } else if (configSymbol.getDelta() != null) {
         return configSymbol.getDelta();
+      } else {
+        return config.getTarget().getDelta();
       }
     } else if (isPut(right)) {
       if (configSymbol.getPuts() != null && configSymbol.getPuts().getDelta() != null) {
         return configSymbol.getPuts().getDelta();
-      } else {
+      } else if (configSymbol.getDelta() != null) {
         return configSymbol.getDelta();
+      } else {
+          return config.getTarget().getDelta();
       }
     }
     return null;
@@ -218,7 +225,7 @@ public class Utils {
 
   public static boolean isValidStrike(String right, double strike, double marketPrice, Double strikeLimit) {
     if (Utils.isPut(right)) {
-      if (strikeLimit != null) {
+      if (strikeLimit != null && strikeLimit > 0) {
         // put 要尽量低的价格
         return strike <= marketPrice && strike <= strikeLimit;
       } else {
@@ -226,7 +233,7 @@ public class Utils {
       }
     } else if (Utils.isCall(right)) {
       // call 要尽量高的价格
-      if (strikeLimit != null) {
+      if (strikeLimit != null && strikeLimit > 0) {
         return strike >= marketPrice && strike >= strikeLimit;
       } else {
         return strike >= marketPrice;

@@ -352,13 +352,13 @@ public class TigerTradeApi implements TradeApi {
   }
 
   @Override
-  public Map<String, Position> getPositions(String secType) {
+  public Map<String, List<Position>> getPositions() {
     TigerHttpRequest request = new TigerHttpRequest(ApiServiceType.POSITIONS);
     String bizContent = AccountParamBuilder.instance()
         .account(account)
         .currency(Currency.USD)
         .market(Market.US)
-        .secType(secType == null ? null : SecType.valueOf(secType))
+        .secType(null)
         .buildJson();
 
     request.setBizContent(bizContent);
@@ -367,7 +367,7 @@ public class TigerTradeApi implements TradeApi {
     if (!response.isSuccess()) {
       throw new RuntimeException("response error,code:" + response.getCode() + ",message:" + response.getMessage());
     }
-    Map<String, Position> positions = new HashMap<>();
+    Map<String, List<Position>> positions = new HashMap<>();
     if (response.getData() != null && response.getData().startsWith("{")) {
       JSONObject jsonObject = JSON.parseObject(response.getData());
       if (jsonObject != null) {
@@ -383,8 +383,13 @@ public class TigerTradeApi implements TradeApi {
               if (position.getRight() != null) {
                 contract.setRight(position.getRight());
               }
-              if (obj.getString("expiry")!=null) {
-                contract.setExpiry(obj.getString("expiry"));
+              String expiry = obj.getString("expiry");
+              if (expiry != null) {
+                if (!expiry.contains("-")) {
+                  contract.setExpiry(expiry.substring(0, 4) + "-" + expiry.substring(4, 6) + "-" + expiry.substring(6));
+                } else {
+                  contract.setExpiry(expiry);
+                }
               }
               if (obj.getDouble("strike")!=null) {
                 contract.setStrike(obj.getDoubleValue("strike"));
@@ -406,7 +411,16 @@ public class TigerTradeApi implements TradeApi {
               position.setPosition(-position.getPosition());
               position.setDirection("SELL");
             }
-            positions.put(position.getSymbol(), position);
+            Double latestPrice = obj.getDouble("latestPrice");
+            if (latestPrice != null) {
+              position.setMarketPrice(latestPrice);
+            }
+            List<Position> positionList = positions.get(position.getSymbol());
+            if (positionList == null) {
+              positionList = new ArrayList<>();
+              positions.put(position.getSymbol(), positionList);
+            }
+            positionList.add(position);
           }
         }
       }

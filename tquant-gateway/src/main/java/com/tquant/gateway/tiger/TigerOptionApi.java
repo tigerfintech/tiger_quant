@@ -57,8 +57,16 @@ public class TigerOptionApi implements OptionApi {
 
   @Override
   public List<OptionBriefItem> getOptionBrief(String symbol, Right right, String strike, String expiry) {
-    OptionBriefResponse response = client.execute(
-        OptionBriefQueryRequest.of(new OptionCommonModel(symbol, right.name(), strike, Long.parseLong(expiry))));
+    OptionCommonModel optionCommonModel = new OptionCommonModel();
+    optionCommonModel.setSymbol(symbol);
+    optionCommonModel.setRight(right.name());
+    optionCommonModel.setStrike(strike);
+    if (expiry != null && !expiry.contains("-")) {
+      optionCommonModel.setExpiry(expiry.substring(0, 4) + "-" + expiry.substring(4, 6) + "-" + expiry.substring(6));
+    } else {
+      optionCommonModel.setExpiry(expiry);
+    }
+    OptionBriefResponse response = client.execute(OptionBriefQueryRequest.of(optionCommonModel));
     if (!response.isSuccess()) {
       throw new TigerQuantException("get option brief error:" + response.getMessage());
     }

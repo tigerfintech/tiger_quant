@@ -45,7 +45,7 @@ public interface TradeApi {
 
   Asset getAsset(String secType);
 
-  Map<String, Position> getPositions(String secType);
+  Map<String, List<Position>> getPositions();
 
   List<Contract> getContracts(String secType);
 

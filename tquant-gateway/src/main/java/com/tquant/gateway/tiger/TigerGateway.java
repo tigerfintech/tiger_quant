@@ -53,7 +53,6 @@ public class TigerGateway extends Gateway {
   private Map<String, Contract> contractDict = new HashMap<>();
   private Map<Long, Order> orderDict = new HashMap<>();
   private Map<Long, Order> openOrderDict = new HashMap<>();
-  private Map<String, Position> positionDict = new HashMap<>();
   private Map<String, Asset> assetDict = new HashMap<>();
 
   private ContractDAO contractDAO = new ContractDAO();
@@ -99,14 +98,7 @@ public class TigerGateway extends Gateway {
 
   @Override
   public void connect() {
-    SecType[] secTypes = new SecType[] {SecType.STK, SecType.FUT};
     queryContract();
-    for (SecType secType : secTypes) {
-      queryAsset(secType);
-      queryOrder(secType);
-      queryPosition(secType);
-      queryAccount();
-    }
     quoteApi.grabQuotePermission();
 
     if (!socketClient.isConnected()) {
@@ -141,13 +133,6 @@ public class TigerGateway extends Gateway {
         this.openOrderDict.put(order.getId(), order);
       }
       onOrder(order);
-    }
-  }
-
-  private void queryPosition(SecType secType) {
-    this.positionDict = tradeApi.getPositions(secType.name());
-    for (Position position : positionDict.values()) {
-      onPosition(position);
     }
   }
 

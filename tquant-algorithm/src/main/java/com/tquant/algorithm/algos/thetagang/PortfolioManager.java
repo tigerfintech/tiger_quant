@@ -56,7 +56,7 @@ public class PortfolioManager {
   public PortfolioManager(RollingSellPutConfig config,Logger logger) {
     this.config = config;
     //是否要调用mock 交易接口，方便测试期权订单，实现下单时可以改成false
-    this.tradeApi.setMock(true);
+    this.tradeApi.setMock(false);
     this.log = logger;
   }
 
@@ -98,8 +98,7 @@ public class PortfolioManager {
 
   private Tick getTickerForOption(Contract contract) {
     List<OptionBriefItem> optionBrief = optionApi
-        .getOptionBrief(contract.getSymbol(), Right.valueOf(contract.getRight()), contract.getStrike().toString(),
-            contract.getExpiry().replaceAll("-",""));
+        .getOptionBrief(contract.getSymbol(), Right.valueOf(contract.getRight()), contract.getStrike().toString(), contract.getExpiry());
     return new Tick(Utils.convertToRealtimeQuote(optionBrief.get(0)), contract);
   }
 
@@ -126,7 +125,7 @@ public class PortfolioManager {
     if (closeAtPnl != null && closeAtPnl > 0) {
       double pnl = Utils.positionPnl(position);
       if (pnl > closeAtPnl) {
-        log.info(String.format("  %s will be closed because P&L of %.1f%% is > %.1f", position.getSymbol(), pnl * 100,
+        log.info(String.format("  %s will be closed because P&L of %.1f%% is > %.1f%%", position.getSymbol(), pnl * 100,
             closeAtPnl * 100));
         return true;
       }
@@ -140,7 +139,7 @@ public class PortfolioManager {
 
   public boolean putCanBeRolled(Position put) {
     // Ignore long positions, we only roll shorts
-    if (put.getPosition() > 0) {
+    if (put.getDirection().equalsIgnoreCase(Direction.BUY.name())) {
       return false;
     }
 
@@ -260,18 +259,20 @@ public class PortfolioManager {
 
   public Map<String, List<Position>> getPortfolioPositions() {
     List<Position> portfolioPositions = tradeApi
-        .getPositions(null)
-        .entrySet()
-        .stream()
-        .map(entry -> entry.getValue())
-        .collect(
-            Collectors.toList());
+        .getPositions().values().stream()
+        .flatMap(List::stream)
+        .collect(Collectors.toList());
+
     return Utils.portfolioPositionsToDict(filterPositions(portfolioPositions));
   }
 
   public void initializeAccount() {
-    if (config.isCancelOrders()) {
+    if (config.getAccount().getCancelOrders()) {
       List<Order> openTrades = tradeApi.getOpenOrders();
+      if (openTrades == null) {
+        log.info("No open orders to be closed");
+        return;
+      }
       for (Order trade : openTrades) {
         if (!trade.getStatus().equalsIgnoreCase(OrderStatus.Filled.name()) && getSymbols().contains(trade.getSymbol())) {
           log.info("Cancelling order={}", trade.getId());
@@ -577,12 +578,14 @@ public class PortfolioManager {
   }
 
   private void writeCalls(String symbol, int quantity, double strikeLimit) {
-    Tick sellTicker = findEligibleContracts(symbol, Right.CALL.name(), strikeLimit, null, null, null);
-
-    Contract contract = newContract(symbol, SecType.OPT, Right.CALL);
-
-    // Submit order
     try {
+      Tick sellTicker = findEligibleContracts(symbol, Right.CALL.name(), strikeLimit, null, null, null);
+      if (sellTicker == null) {
+        log.info("writeCalls error , cannot find suitable contract for {}", symbol);
+        return;
+      }
+      Contract contract = sellTicker.getContract();
+      // Submit order
       long orderId = tradeApi.placeLimitOrder(contract, Direction.SELL.name(), Utils.midpointOrAskPrice(sellTicker), quantity);
       Order order = tradeApi.getOrder(orderId);
       orders.add(order);
@@ -591,7 +594,6 @@ public class PortfolioManager {
     } catch (RuntimeException e) {
       log.info("Order trade submission seems to have failed, or a response wasn't received in time. Continuing anyway...");
       log.error("writeCalls error {}", e.getMessage());
-      throw e;
     }
   }
 
@@ -602,10 +604,11 @@ public class PortfolioManager {
     } catch (RuntimeException e) {
       log.error("Finding eligible contracts for {} failed. Continuing anyway...", symbol);
       log.error("writePuts error {}", e.getMessage());
-      throw e;
+      return;
     }
 
-    Contract contract = newContract(symbol, SecType.OPT, Right.PUT);
+    Contract contract = newContract(symbol, SecType.OPT, Right.PUT, sellTicker.getContract().getExpiry(),
+        sellTicker.getContract().getStrike());
 
     // Submit order
     long orderId = tradeApi.placeLimitOrder(contract, Direction.SELL.name(), Utils.midpointOrAskPrice(sellTicker), quantity);
@@ -793,7 +796,7 @@ public class PortfolioManager {
             Math.abs(position.getPosition()), qtyToRoll, fromDte, toDte, fromStrike, toStrike, price, order1, order2);
       } catch (Exception e) {
         log.error("rollPositions error {}", e.getMessage());
-        throw e;
+        return;
       }
     }
   }
@@ -823,7 +826,7 @@ public class PortfolioManager {
       }
     }
     if (expirations.isEmpty()) {
-      return null;
+      throw new RuntimeException("No valid contracts found for " + symbol + ". Aborting.");
     }
     Collections.sort(expirations);
     int chainExpirations = Math.min(config.getOptionChains().getExpirations(), expirations.size());
@@ -852,7 +855,7 @@ public class PortfolioManager {
       }
     }
     if (strikes.isEmpty()) {
-      return null;
+      throw new RuntimeException("No valid contracts found for " + symbol + ". Aborting.");
     }
     Collections.sort(strikes);
 
@@ -867,7 +870,7 @@ public class PortfolioManager {
       }
     }
 
-    if (excludeFirstExpStrike != 0) {
+    if (excludeFirstExpStrike != null && excludeFirstExpStrike != 0) {
       List<Contract> contractsToRemove = new ArrayList<>();
       for (Contract contract : contracts) {
         if (contract.getExpiry().equals(expirations.get(0))
@@ -900,7 +903,6 @@ public class PortfolioManager {
     int chainStrikes = this.config.getOptionChains().getStrikes();
     if (right.equalsIgnoreCase(Right.PUT.name())) {
       if (strikes.size() < chainStrikes) {
-        System.out.println(strikes.subList(0, Math.min(chainStrikes, strikes.size())));
         return strikes;
       }
       return strikes.subList(strikes.size() - chainStrikes, strikes.size());
@@ -909,7 +911,10 @@ public class PortfolioManager {
     }
   }
 
-  public boolean priceIsValid(Tick ticker,double minimumPrice) {
+  public boolean priceIsValid(Tick ticker,Double minimumPrice) {
+    if (minimumPrice == null) {
+      minimumPrice = 0D;
+    }
     if (Utils.midpointOrMarketPrice(ticker) > minimumPrice) {
       return true;
     } else {

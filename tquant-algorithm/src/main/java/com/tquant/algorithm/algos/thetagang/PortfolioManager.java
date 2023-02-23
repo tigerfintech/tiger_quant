@@ -562,7 +562,7 @@ public class PortfolioManager {
 
       if (callsToWrite > 0 && okToWrite) {
         log.info(
-            "Will write {} calls, {} needed for {}, capped at {}, at or above strike $ {} (target_calls={}, call_count={})",
+            "Will write {} calls, {} needed for {}, capped at {}, at or above strike ${} (target_calls={}, call_count={})",
             callsToWrite, newContractsNeeded, symbol, maximumNewContracts, strikeLimit, targetCalls, callCount);
         try {
           writeCalls(symbol, callsToWrite, strikeLimit);
@@ -629,7 +629,7 @@ public class PortfolioManager {
         .collect(Collectors.toList());
 
     double totalBuyingPower = getBuyingPower(accountSummary.getBuyingPower());
-    log.info("Total buying power: $ {} at {} % margin usage", (int) totalBuyingPower,(int) (config.getAccount().getMarginUsage() * 100));
+    log.info("Total buying power: ${} at {} % margin usage", (int) totalBuyingPower,(int) (config.getAccount().getMarginUsage() * 100));
 
     Map<String, Position> stockSymbols =
         stockPositions.stream().collect(Collectors.toMap(Position::getSymbol, Function.identity()));
@@ -651,7 +651,7 @@ public class PortfolioManager {
       targets.put(symbol, Math.round(
           config.getSymbols().get(symbol).getWeight() * totalBuyingPower * 100.0) / 100.0
       );
-      log.info("    Target value: $ {}", targets.get(symbol));
+      log.info("    Target value: ${}", targets.get(symbol));
       int targetQuantity = (int) Math.floor(targets.get(symbol) / ticker.getLatestPrice());
       log.info("    Target share quantity: {}", targetQuantity);
 
@@ -681,7 +681,7 @@ public class PortfolioManager {
           Double strikeLimitDouble = getStrikeLimit(config, symbol, Right.PUT.name());
           double strikeLimit = strikeLimitDouble != null ? strikeLimitDouble : 0D;
           if (strikeLimit > 0) {
-            log.info("Will write {} puts, {} needed for {}, capped at {}, at or below strike $ {}", putsToWrite,
+            log.info("Will write {} puts, {} needed for {}, capped at {}, at or below strike ${}", putsToWrite,
                 additionalQuantity, symbol, maximumNewContracts, strikeLimit);
           } else {
             log.info("Will write {} puts, {} needed for {}, capped at {}", putsToWrite, additionalQuantity, symbol,

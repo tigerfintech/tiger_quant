@@ -35,9 +35,7 @@ import org.slf4j.Logger;
 import static com.tquant.algorithm.algos.utils.Utils.getStrikeLimit;
 
 /**
- * Description: 期权策略只能在盘中运行，如果盘前操作会有问题
- * 1.因为盘前无法获取到最新期权价格，导致下单不符合预期
- * 2.同时获取期权最新价接口只有在盘前阶段才会返回盘口价格和期权最新价
+ * Description:
  *
  * @author kevin
  * @date 2023/02/09
@@ -403,8 +401,6 @@ public class PortfolioManager {
       log.info("An exception was raised, exiting, {}", e.getMessage());
       throw e;
     }
-
-    System.exit(1);
   }
 
   public void checkPuts(Asset accountSummary, Map<String, List<Position>> portfolioPositions) {

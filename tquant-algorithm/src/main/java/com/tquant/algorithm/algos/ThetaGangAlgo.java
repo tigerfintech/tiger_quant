@@ -10,7 +10,8 @@ import com.tquant.core.model.data.Trade;
 
 /**
  * Description:
- *
+ * suggest to run this strategy weekly, and you can use crontab scripts.
+ * thetagang strategy description: https://einvestingforbeginners.com/theta-gang-strategies/
  * @author kevin
  * @date 2023/02/09
  */
@@ -23,6 +24,8 @@ public class ThetaGangAlgo extends AlgoTemplate {
     portfolioManager = new PortfolioManager(JacksonUtils.convertValue(settings, RollingSellPutConfig.class),
         getAlgoEngine().getMainEngine().getLogger());
     portfolioManager.manage();
+
+    exit();
   }
 
   @Override
@@ -40,5 +43,8 @@ public class ThetaGangAlgo extends AlgoTemplate {
 
   }
 
+  private void exit() {
+    System.exit(1);
+  }
 
 }

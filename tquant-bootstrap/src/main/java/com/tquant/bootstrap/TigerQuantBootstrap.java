@@ -11,8 +11,10 @@ import java.util.concurrent.locks.ReentrantLock;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.Options;
 
-import static com.tquant.core.util.QuantUtils.ALGO_CONFIG_PATH_PROP;
-import static com.tquant.core.util.QuantUtils.TIGER_CONFIG_PATH_PROP;
+import static com.tquant.core.util.QuantConstants.ALGO_CONFIG_PATH;
+import static com.tquant.core.util.QuantConstants.ALGO_CONFIG_PATH_PROP;
+import static com.tquant.core.util.QuantConstants.GATEWAY_CONFIG_PATH;
+import static com.tquant.core.util.QuantConstants.TIGER_CONFIG_PATH_PROP;
 
 /**
  * Description: bootstrap
@@ -21,9 +23,6 @@ import static com.tquant.core.util.QuantUtils.TIGER_CONFIG_PATH_PROP;
  * @date 2019/08/15
  */
 public class TigerQuantBootstrap implements CliRunner {
-
-  private static final String GATEWAY_CONFIG_PATH = "g";
-  private static final String ALGO_CONFIG_PATH = "a";
 
   private static final ReentrantLock LOCK = new ReentrantLock();
   private static final Condition STOP = LOCK.newCondition();

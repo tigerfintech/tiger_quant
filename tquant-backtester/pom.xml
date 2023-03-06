@@ -33,6 +33,11 @@
       <version>1.0.0</version>
     </dependency>
     <dependency>
+      <groupId>com.tigerbrokers</groupId>
+      <artifactId>tquant-bootstrap</artifactId>
+      <version>1.0.0</version>
+    </dependency>
+    <dependency>
       <groupId>tech.tablesaw</groupId>
       <artifactId>tablesaw-core</artifactId>
     </dependency>

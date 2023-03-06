@@ -3,7 +3,7 @@ package com.tquant.gateway.tiger;
 import com.tquant.core.TigerQuantException;
 import com.tquant.core.config.*;
 
-import static com.tquant.core.util.QuantUtils.TIGER_CONFIG_PATH_PROP;
+import static com.tquant.core.util.QuantConstants.TIGER_CONFIG_PATH_PROP;
 
 /**
  * Description:

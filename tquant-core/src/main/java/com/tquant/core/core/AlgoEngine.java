@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.tquant.core.util.QuantUtils.ALGO_CONFIG_PATH_PROP;
+import static com.tquant.core.util.QuantConstants.ALGO_CONFIG_PATH_PROP;
 
 /**
  * Description:

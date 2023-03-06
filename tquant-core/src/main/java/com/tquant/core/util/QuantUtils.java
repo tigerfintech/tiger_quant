@@ -14,8 +14,6 @@ import java.util.stream.Collectors;
  */
 public class QuantUtils {
 
-  public static final String ALGO_CONFIG_PATH_PROP = "algo_config_path";
-  public static final String TIGER_CONFIG_PATH_PROP = "tiger_config_path";
 
   private static final Pattern FUTURE_SYMBOL_PATTERN = Pattern.compile("[A-Z]{2,4}([0-9]{4}|main){1}");
 

@@ -1,6 +1,8 @@
 package com.tquant.backtester;
 
 import com.tquant.algorithm.algos.SmaAlgo;
+import com.tquant.bootstrap.command.CliRunner;
+import com.tquant.bootstrap.command.CommandExecuteTemplate;
 import com.tquant.core.core.AlgoEngine;
 import com.tquant.core.core.MainEngine;
 import com.tquant.core.event.EventEngine;
@@ -12,6 +14,13 @@ import com.tquant.core.model.enums.OrderType;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.Options;
+
+import static com.tquant.core.util.QuantConstants.ALGO_CONFIG_PATH;
+import static com.tquant.core.util.QuantConstants.ALGO_CONFIG_PATH_PROP;
+import static com.tquant.core.util.QuantConstants.GATEWAY_CONFIG_PATH;
+import static com.tquant.core.util.QuantConstants.TIGER_CONFIG_PATH_PROP;
 
 /**
  * Description:
@@ -19,12 +28,15 @@ import java.util.Map;
  * @author kevin
  * @date 2022/08/02
  */
-public class Backtesting {
+public class Backtesting implements CliRunner {
 
   public static void main(String[] args) {
-    Backtesting backtesting = new Backtesting();
-    //backtesting.testCalculateResult();
-    backtesting.testBacktesting();
+    CommandExecuteTemplate.execute(args, "-[a][g]", new Backtesting());
+  }
+
+  private void initProperties(String algoConfigPath, String gatewayConfigPath) {
+    System.setProperty(ALGO_CONFIG_PATH_PROP, algoConfigPath);
+    System.setProperty(TIGER_CONFIG_PATH_PROP, gatewayConfigPath);
   }
 
   private BacktestingEngine initEngine() {
@@ -79,6 +91,33 @@ public class Backtesting {
     }
     backtestingEngine.calculateResult();
     backtestingEngine.calculateStatistics();
+  }
+
+  @Override
+  public Options initOptions() {
+    Options options = new Options();
+    options.addOption(ALGO_CONFIG_PATH, true, "Algorithm strategy configuration path, cannot be empty");
+    options.addOption(GATEWAY_CONFIG_PATH, true, "Gateway config path, cannot be empty");
+    return options;
+  }
+
+  @Override
+  public boolean validateOptions(CommandLine cmdLine) {
+    return (cmdLine.hasOption(ALGO_CONFIG_PATH) && cmdLine.hasOption(GATEWAY_CONFIG_PATH));
+  }
+
+  @Override
+  public void start(CommandLine cmdLine) {
+    String algoConfigPath = cmdLine.getOptionValue(ALGO_CONFIG_PATH);
+    String gatewayConfigPath = cmdLine.getOptionValue(GATEWAY_CONFIG_PATH);
+    initProperties(algoConfigPath, gatewayConfigPath);
+    startService();
+  }
+
+  private void startService() {
+    Backtesting backtesting = new Backtesting();
+    //backtesting.testCalculateResult();
+    backtesting.testBacktesting();
   }
 }
 

@@ -21,7 +21,7 @@
 
   <properties>
     <maven.plugin.version>3.1.0</maven.plugin.version>
-    <io.github.tigerbrokers.openapi-java-sdk.version>1.4.5</io.github.tigerbrokers.openapi-java-sdk.version>
+    <tigerbrokers.openapi-java-sdk.version>2.0.0</tigerbrokers.openapi-java-sdk.version>
     <junit.junit.version>4.13.1</junit.junit.version>
     <org.slf4j.slf4j-api.version>1.7.28</org.slf4j.slf4j-api.version>
     <org.ta4j.ta4j-core.version>0.14</org.ta4j.ta4j-core.version>
@@ -41,7 +41,7 @@
       <dependency>
         <groupId>io.github.tigerbrokers</groupId>
         <artifactId>openapi-java-sdk</artifactId>
-        <version>${io.github.tigerbrokers.openapi-java-sdk.version}</version>
+        <version>${tigerbrokers.openapi-java-sdk.version}</version>
       </dependency>
       <dependency>
         <groupId>org.slf4j</groupId>

@@ -1,10 +1,15 @@
 package com.tquant.gateway.tiger;
 
-import com.alibaba.fastjson.JSONObject;
+import com.tigerbrokers.stock.openapi.client.socket.data.TradeTick;
+import com.tigerbrokers.stock.openapi.client.socket.data.pb.AssetData;
+import com.tigerbrokers.stock.openapi.client.socket.data.pb.OrderStatusData;
+import com.tigerbrokers.stock.openapi.client.socket.data.pb.OrderTransactionData;
+import com.tigerbrokers.stock.openapi.client.socket.data.pb.PositionData;
+import com.tigerbrokers.stock.openapi.client.socket.data.pb.QuoteBBOData;
+import com.tigerbrokers.stock.openapi.client.socket.data.pb.QuoteBasicData;
+import com.tigerbrokers.stock.openapi.client.socket.data.pb.QuoteDepthData;
 import com.tquant.core.core.Gateway;
-import com.tquant.core.model.data.Asset;
 import com.tquant.core.model.data.Order;
-import com.tquant.core.model.data.Position;
 import com.tquant.core.model.data.Tick;
 import com.tigerbrokers.stock.openapi.client.socket.ApiComposeCallback;
 import com.tigerbrokers.stock.openapi.client.struct.SubscribedSymbol;
@@ -38,10 +43,6 @@ public class TigerSubscribeApi implements ApiComposeCallback {
         gateway.log("{} connectionClosed ", gateway.getGatewayName());
     }
 
-    @Override
-    public void connectionKickoff(int errorCode, String errorMsg) {
-        gateway.log("{} connectionKickoff", gateway.getGatewayName());
-    }
 
     @Override
     public void connectionAck() {
@@ -70,64 +71,103 @@ public class TigerSubscribeApi implements ApiComposeCallback {
     }
 
     @Override
-    public void orderStatusChange(JSONObject jsonObject) {
-        Order order = jsonObject.toJavaObject(Order.class);
-        gateway.log("orderChange {}",jsonObject.toJSONString());
+    public void connectionKickout(int errorCode, String errorMsg) {
+        gateway.log("{} connectionKickoff {} {}", gateway.getGatewayName(), errorCode, errorMsg);
+    }
+
+    @Override
+    public void orderStatusChange(OrderStatusData data) {
+        gateway.log("orderChange {}",data);
+        Order order = new Order();
+        order.setAccount(data.getAccount());
+        order.setAverageFilledPrice(data.getAvgFillPrice());
+        order.setDirection(data.getAction());
+        order.setId(data.getId());
+        order.setOrderType(data.getOrderType());
+        order.setSymbol(data.getSymbol());
+        order.setVolume(data.getTotalQuantity());
+        order.setFilledVolume(data.getFilledQuantity());
+        order.setStatus(data.getStatus());
         gateway.onOrder(order);
     }
 
     @Override
-    public void positionChange(JSONObject jsonObject) {
-        Position position = jsonObject.toJavaObject(Position.class);
-        //gateway.log("positionChange {}",jsonObject.toJSONString());
-        //gateway.onPosition(position);
+    public void orderTransactionChange(OrderTransactionData data) {
+
     }
 
     @Override
-    public void assetChange(JSONObject jsonObject) {
-        Asset asset = jsonObject.toJavaObject(Asset.class);
-        //gateway.log("assetChange {}",jsonObject.toJSONString());
-        //gateway.onAsset(asset);
+    public void positionChange(PositionData data) {
+
     }
 
     @Override
-    public void quoteChange(JSONObject jsonObject) {
+    public void assetChange(AssetData data) {
+
+    }
+
+    @Override
+    public void tradeTickChange(TradeTick data) {
+
+    }
+
+    @Override
+    public void quoteChange(QuoteBasicData data) {
+        gateway.log("quoteChange {}",data);
         Tick tick = new Tick();
-        tick.jsonToTick(jsonObject);
+        tick.setSymbol(data.getSymbol());
+        tick.setIdentifier(data.getIdentifier());
+        tick.setVolume(data.getVolume());
+        tick.setLatestPrice(data.getLatestPrice());
+        tick.setAmount(data.getAmount());
+        tick.setOpen(data.getOpen());
+        tick.setHigh(data.getHigh());
+        tick.setLow(data.getLow());
+        //close
+        //tick.setClose(data.get);
+        tick.setPreClose(data.getPreClose());
+
         gateway.onTick(tick);
     }
 
     @Override
-    public void tradeTickChange(JSONObject jsonObject) {
+    public void quoteAskBidChange(QuoteBBOData data) {
 
     }
 
     @Override
-    public void optionChange(JSONObject jsonObject) {
-        Tick tick = new Tick();
-        tick.jsonToTick(jsonObject);
-        gateway.onTick(tick);
+    public void optionChange(QuoteBasicData data) {
+
     }
 
     @Override
-    public void futureChange(JSONObject jsonObject) {
-        Tick tick = new Tick();
-        tick.jsonToTick(jsonObject);
-        gateway.onTick(tick);
+    public void optionAskBidChange(QuoteBBOData data) {
+
     }
 
     @Override
-    public void depthQuoteChange(JSONObject jsonObject) {
-        gateway.log("{} depthQuote change {}", gateway.getGatewayName(), jsonObject.toJSONString());
+    public void futureChange(QuoteBasicData data) {
+
     }
 
     @Override
-    public void subscribeEnd(String id, String subject, JSONObject jsonObject) {
-        gateway.log("{} subscribeEnd {} {} {}", gateway.getGatewayName(), id, subject, jsonObject.toJSONString());
+    public void futureAskBidChange(QuoteBBOData data) {
+
     }
 
     @Override
-    public void cancelSubscribeEnd(String id, String subject, JSONObject jsonObject) {
-        gateway.log("{} cancelSubscribeEnd {} {} {}", gateway.getGatewayName(), id, subject, jsonObject.toJSONString());
+    public void depthQuoteChange(QuoteDepthData data) {
+        gateway.log("{} depthQuote change {}", gateway.getGatewayName(), data);
     }
+
+    @Override
+    public void subscribeEnd(int id, String subject, String result) {
+        gateway.log("{} subscribeEnd {} {} {}", gateway.getGatewayName(), id, subject, result);
+    }
+
+    @Override
+    public void cancelSubscribeEnd(int id, String subject, String result) {
+        gateway.log("{} cancelSubscribeEnd {} {} {}", gateway.getGatewayName(), id, subject, result);
+    }
+
 }

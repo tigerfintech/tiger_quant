@@ -24,9 +24,9 @@ public class Order {
   private String direction;
   private String orderType;
   private double price;
-  private int volume;
+  private long volume;
   private double averageFilledPrice;
-  private int filledVolume;
+  private long filledVolume;
   private String status;
   private String remark;
   private long time;
@@ -43,7 +43,7 @@ public class Order {
   public Order() {
   }
 
-  public Order(long id, String symbol, double price, int volume, String direction, String orderType) {
+  public Order(long id, String symbol, double price, long volume, String direction, String orderType) {
     this.id = id;
     this.symbol = symbol;
     this.price = price;
@@ -72,9 +72,9 @@ public class Order {
     this.direction = jsonObject.getString("action");
     this.orderType = jsonObject.getString("orderType");
     this.price = jsonObject.getDoubleValue("limitPrice");
-    this.volume = jsonObject.getIntValue("totalQuantity");
+    this.volume = jsonObject.getLongValue("totalQuantity");
     this.averageFilledPrice = jsonObject.getDoubleValue("avgFillPrice");
-    this.filledVolume = jsonObject.getIntValue("filledQuantity");
+    this.filledVolume = jsonObject.getLongValue("filledQuantity");
     this.remark = jsonObject.getString("remark");
     this.status = jsonObject.getString("status");
     this.time = jsonObject.getLongValue("openTime");

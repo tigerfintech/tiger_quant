@@ -21,7 +21,7 @@ public class Trade {
   private String direction;
   private String orderType;
   private double price;
-  private int volume;
+  private long volume;
   private String status;
   private LocalDateTime time;
 }

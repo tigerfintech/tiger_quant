@@ -94,7 +94,7 @@ public class BacktestingEngine {
 
   private long tradeCount = 0;
   private double tradePrice = 0;
-  private int posChange = 0;
+  private long posChange = 0;
 
   private Map<LocalDate, DailyResult> dailyResults = new LinkedHashMap<>();
   private Map<String, Trade> trades = new HashMap<>();

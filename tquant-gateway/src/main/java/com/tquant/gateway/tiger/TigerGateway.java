@@ -101,7 +101,7 @@ public class TigerGateway extends Gateway {
     queryContract();
     quoteApi.grabQuotePermission();
 
-    if (!socketClient.isConnected()) {
+    if (isSubscribeEnabled() && !socketClient.isConnected()) {
       socketClient.connect();
     }
   }
@@ -109,7 +109,16 @@ public class TigerGateway extends Gateway {
   @Override
   public void stop() {
     cancelAllActiveOrders();
-    socketClient.disconnect();
+    if (socketClient != null) {
+      try {
+        socketClient.disconnect();
+      } catch (Exception e) {
+      }
+    }
+  }
+
+  private boolean isSubscribeEnabled() {
+    return subscribeEnabled == null ? false : subscribeEnabled;
   }
 
   private void cancelAllActiveOrders() {
@@ -160,7 +169,7 @@ public class TigerGateway extends Gateway {
 
   @Override
   public void subscribe(SubscribeRequest request) {
-    if (subscribeEnabled == null || !subscribeEnabled) {
+    if (!isSubscribeEnabled()) {
       return;
     }
     socketClient.subscribe(Subject.OrderStatus);

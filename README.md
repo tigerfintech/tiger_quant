@@ -178,6 +178,126 @@ kill命令执行时会同时执行项目的stop方法回调。
  }
 ```
 
+## Thetagang策略说明
+
+Thetagang是我们封装的一个期权策略，策略的意图是赚取theta（时间价值）流失的钱，该策略最初是在reddit论坛里发起，是一个比较成熟的期权策略。
+具体介绍可以参考：https://www.reddit.com/r/options/comments/a36k4j/the_wheel_aka_triple_income_strategy_explained/
+
+同时在github有一个基于IB的[thetagang策略](https://github.com/brndnmtthws/thetagang)，我们的java版本策略也是基于此来改造的。
+
+策略使用参数介绍如下：
+> 注意：以下策略配置文件不能直接使用，因为使用了注释说明，不是标准json格式，如需使用，可以直接使用项目根目录下的模板文件：`algo_setting.json`
+
+```json
+ "ThetaGangAlgo": {
+    "enable": true, //是否启用策略
+    "class":"com.tquant.algorithm.algos.ThetaGangAlgo", //对应策略实现的代码路径
+    "account": {
+      "account_id": "20190419163107900", //使用的账号信息，可以配置为模拟账号或综合账号
+      "cancel_orders": true, //策略执行前，是否要取消已经挂出去的订单
+      "margin_usage": 0.5, //该策略要使用的资金占总资产的比例，如 0.5 表示为 50%
+    },
+    //期权链是延迟加载的，在你确定期权希腊值（delta）或期权价格之前，你需要先扫描期权链。
+    //这里的设置是告诉thetagang策略要加载多少个合约。不要让这些值太大，因为它们会导致扫描期权链过多，可能会失败。
+    //如果你遇到thetagang找不到合适的contract的问题，可以试试略微增加这些值。
+    "option_chains": {
+      "expirations": 4, //从期权链上加载的到期日数量
+      "strikes": 15 //从期权链上加载的行权价数量
+    },
+    "roll_when": {
+      "pnl": 0.9, //盈亏(pnl)到达 90% 时，需要滚动持仓
+      //或者，当离到期日<=15天，并且盈亏至少到min_pnl (min_pnl默认为0)时。
+      //注意：对于期权最终是深度 ITM 的情况，特别是在卖出套期保值（covered call）的时候，盈亏有可能是负数、
+      //示例：如果你想在这种情况下进行滚动，请将min_pnl设置为一个负值，如-1（代表-100%）。
+      "dte": 15, 
+      "min_pnl": 0.2,
+      //可选的： 当盈亏达到这个阈值时，创建一个平仓单。
+      //这会覆盖其他参数，也就是说，它忽略了dte和其他参数。如果不指定，它没有任何作用。
+      //这可以处理这样的情况，即你有长期的期权，已经慢慢变得毫无价值，你只是想把它们从你的投资组合中删除。
+      "close_at_pnl": 0.99,
+      "calls": {
+        "itm": true,
+        "credit_only": false //只有在有合适的contract可用时，才会进行滚动，从而获得一个 credit。
+      },
+      "puts": {
+        "itm": false,
+        "credit_only": false //只有在有合适的contract可用时，才会进行滚动，从而获得一个 credit。
+      }
+    },
+    "write_when": {
+      "calls": {
+        "green": true, //可选的，只有在对应标的上涨时才会write。
+        //有了套期保值(covered call)，我们就可以通过这个因素来限定写的套期保值的数量。
+        //在1.0的时候，我们对100%的头寸写覆盖性看涨。
+        //在0.5时，我们只写 50%的头寸。这个值必须在1和0之间（含）。
+        "cap_factor": 1
+      },
+      "puts": {
+        "red": true  //可选的，只有在对应标的下跌时才会write。
+      }
+    },
+    "target": {
+      "dte": 45,  // Target 45 or more days to expiry
+      "delta": 0.3,  //Target delta of 0.3 or less. Defaults to 0.3 if not specified.
+      // When writing new contracts (either covered calls or naked puts), or rolling
+      // before `roll_when.dte` is reached, never write more than this amount of
+      // contracts at once. This can be useful to avoid bunching by spreading contract
+      // placement out over time (and possibly expirations) in order to protect
+      // yourself from large swings. This value does not affect rolling existing
+      // contracts to the next expiration. This value is expressed as a percentage of
+      // buying power based on the market price of the underlying ticker, as a range
+      // from [0.0-1.0].
+      //
+      // Once the `roll_when.dte` date is reached, all the remaining positions are
+      // rolled regardless of the current position quantity.
+      //
+      // Defaults to 5% of buying power. Set this to 1.0 to effectively disable the
+      // limit.
+      "maximum_new_contracts_percent": 0.05, 
+      // Minimum amount of open interest for a contract to qualify
+      "minimum_open_interest": 10
+    },
+
+    // Optional: specify delta separately for puts/calls. Takes precedent over
+    // target.delta.
+    //
+    //  [target.puts]
+    //  delta = 0.5
+    //  [target.calls]
+    //  delta = 0.3
+    "symbols": {
+        # NOTE: Please change these symbols and weights according to your preferences.
+        # These are provided only as an example for the purpose of configuration. These
+        # values were chosen as sane values should someone decide to run this code
+        # without changes, however it is in no way a recommendation or endorsement.
+        #
+        # You can specify the weight either as a percentage of your buying power (which
+        # is calculated as your NLV * account.margin_usage), or in terms of parts. Parts
+        # are summed from all symbols, then the weight is calculated by dividing the
+        # parts by the total parts.
+        #
+        # You should try to choose ETFs or stocks that:
+        #
+        #  1) Have sufficient trading volume for the underlying
+        #  2) Have standard options contracts (100 shares per contract)
+        #  3) Have options with sufficient open interest and trading volume
+        #
+        # The target delta may also be specified per-symbol, and takes precedence over
+        # `target.delta` or `target.puts/calls.delta`. You can specify a value for the
+        # symbol, or override individually for puts/calls.
+      "SPY": {
+        "weight": 0.4
+      },
+      "AAPL": {
+        "weight": 0.3
+      },
+      "MSFT": {
+        "weight": 0.3
+      }
+    }
+  }
+```
+
 ## 外部依赖
 
 #### ta4j

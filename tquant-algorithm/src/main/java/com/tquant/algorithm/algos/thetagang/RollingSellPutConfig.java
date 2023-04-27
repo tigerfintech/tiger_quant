@@ -17,8 +17,6 @@ public class RollingSellPutConfig {
 
   private boolean enable;
   private Account account;
-  private int marketDataType;
-  private Orders orders;
   private OptionChains optionChains;
   private RollWhen rollWhen;
   private WriteWhen writeWhen;
@@ -31,22 +29,6 @@ public class RollingSellPutConfig {
     private String accountId;
     private Boolean cancelOrders;
     private Double marginUsage;
-  }
-
-  @Data
-  @NoArgsConstructor
-  public static class Orders {
-
-    private String exchange;
-    private Algo algo;
-
-    @Data
-    @NoArgsConstructor
-    public static class Algo {
-
-      private String strategy;
-      private List<String[]> params;
-    }
   }
 
   @Data
